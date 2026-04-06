@@ -1,0 +1,31 @@
+manifestVersion: 1
+id: madutxo-headscale
+category: networking
+name: Headscale
+icon: https://raw.githubusercontent.com/MadUTXO/community-umbrel-apps/master/madutxo-headscale/icon.png
+version: "v0.28.0"
+tagline: Open source Tailscale control server
+description: >-
+  Headscale is an open source implementation of the Tailscale control server.
+  It provides a self-hosted alternative to Tailscale's SaaS control server,
+  allowing you to run your own VPN coordination server.
+
+
+  Features:
+  - Self-hosted Tailscale control server
+  - WireGuard-based VPN
+  - No proprietary dependencies
+  - Full control over your network
+developer: Headscale team
+website: https://headscale.net
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/community-umbrel-apps
+dependencies: []
+repo: https://github.com/juanfont/headscale
+support: https://github.com/juanfont/headscale/issues
+port: 8080
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+releaseNotes: ""

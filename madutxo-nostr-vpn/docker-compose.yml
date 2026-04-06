@@ -9,7 +9,7 @@ services:
 
   server:
     init: true
-    image: ghcr.io/madutxo/nostr-vpn:0.3.4@sha256:3074cda0a72fcef8f5a7764841f63b0ab3d0b1de8e1f7ad47ca3448fae465b83
+    image: ghcr.io/getumbrel/nostr-vpn:v0.3.4
     user: "1000:1000"
     restart: on-failure
     stop_grace_period: 1m
