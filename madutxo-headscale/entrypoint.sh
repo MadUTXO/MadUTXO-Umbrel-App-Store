@@ -3,20 +3,14 @@ set -e
 
 CONFIG_FILE="/etc/headscale/config.yaml"
 
-# Create config directory if it doesn't exist
-mkdir -p /etc/headscale
+# Create directories
+mkdir -p /etc/headscale /var/lib/headscale
 
-# Copy config if it doesn't exist (mounted from APP_DATA_DIR)
+# If config doesn't exist, download from GitHub
 if [ ! -f "$CONFIG_FILE" ]; then
-    if [ -f "/data/config.yaml" ]; then
-        cp /data/config.yaml "$CONFIG_FILE"
-    elif [ -f "/data/headscale/config.yaml" ]; then
-        cp /data/headscale/config.yaml "$CONFIG_FILE"
-    fi
+    echo "Downloading Headscale config from GitHub..."
+    wget -q -O "$CONFIG_FILE" "https://raw.githubusercontent.com/MadUTXO/community-umbrel-apps/master/madutxo-headscale/config.yaml"
 fi
-
-# Ensure data directory exists
-mkdir -p /var/lib/headscale
 
 # Execute the main command
 exec "$@"
