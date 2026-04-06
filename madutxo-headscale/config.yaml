@@ -1,0 +1,39 @@
+---
+# Headscale configuration for Umbrel
+
+server:
+  # Listen addresses
+  listen_addr: 0.0.0.0:8080
+  metrics_listen_addr: 0.0.0.0:9090
+
+  # Private key path (will be generated if missing)
+  private_key_path: /var/lib/headscale/private.key
+
+  # Base domain for nodes
+  base_domain: headscale.internal
+
+  # DERP (relay) server config
+  derp:
+    server:
+      enabled: false
+
+  # Database config
+  db_type: sqlite3
+  db_path: /var/lib/headscale/db.sqlite
+
+  # Logging
+  log:
+    format: text
+    level: info
+
+  # ACL policy (allow all by default for testing)
+  acl_policy_path: ""
+
+  # Unix socket for CLI (disabled in container)
+  unix_socket: ""
+  unix_socket_permission: "0770"
+
+# CLI authentication
+cli:
+  auth_key: ""
+  insecure: false
