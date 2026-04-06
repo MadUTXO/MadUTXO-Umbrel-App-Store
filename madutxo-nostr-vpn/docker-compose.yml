@@ -8,7 +8,7 @@ services:
     stop_grace_period: 1m
     network_mode: host
     labels:
-      yantr.app: "community-nostr-vpn"
+      yantr.app: "madutxo-nostr-vpn"
       yantr.service: "VPN Service"
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
