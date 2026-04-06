@@ -2,10 +2,14 @@ version: "3.7"
 
 services:
   app_proxy:
+    image: nginx:alpine
+    restart: on-failure
+    labels:
+      yantr.app: "madutxo-headscale"
+      yantr.service: "Web UI"
     environment:
-      APP_HOST: ${APP_MADUTXO_HEADSCALE_IP}
-      APP_PORT: ${APP_MADUTXO_HEADSCALE_PORT}
-      PROXY_AUTH_ADD: "false"
+      - NGINX_HOST=127.0.0.1
+      - NGINX_PORT=8080
 
   server:
     init: true
@@ -22,6 +26,7 @@ services:
     environment:
       - TZ=${TZ:-UTC}
       - HEADSCALE_CONFIG=/etc/headscale/config.yaml
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
     command: serve
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9090/health"]
