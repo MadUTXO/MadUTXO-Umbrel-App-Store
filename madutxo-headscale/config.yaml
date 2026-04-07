@@ -1,9 +1,7 @@
 ---
-server_url: http://127.0.0.1:8080
+server_url: http://localhost:8080
 listen_addr: 0.0.0.0:8080
 metrics_listen_addr: 0.0.0.0:9090
-grpc_listen_addr: 127.0.0.1:50443
-grpc_allow_insecure: false
 
 noise:
   private_key_path: /var/lib/headscale/noise_private.key
@@ -11,7 +9,6 @@ noise:
 prefixes:
   v4: 100.64.0.0/10
   v6: fd7a:115c:a1e0::/48
-  allocation: sequential
 
 derp:
   server:
@@ -19,10 +16,7 @@ derp:
   urls:
     - https://controlplane.tailscale.com/derpmap/default
   auto_update_enabled: true
-  update_frequency: 3h
-
-disable_check_updates: false
-ephemeral_node_inactivity_timeout: 30m
+  update_frequency: 24h
 
 database:
   type: sqlite
@@ -30,28 +24,13 @@ database:
     path: /var/lib/headscale/db.sqlite
     write_ahead_log: true
 
-acme_url: https://acme-v02.api.letsencrypt.org/directory
-acme_email: ""
-tls_letsencrypt_hostname: ""
-tls_letsencrypt_cache_dir: /var/lib/headscale/cache
-tls_letsencrypt_challenge_type: HTTP-01
-tls_letsencrypt_listen: ":http"
-
-tls_cert_path: ""
-tls_key_path: ""
-
 log:
   level: info
   format: text
 
-policy:
-  mode: file
-  path: ""
-
 dns:
-  magic_dns: true
-  base_domain: headscale.internal
-  override_local_dns: true
+  magic_dns: false
+  override_local_dns: false
   nameservers:
     global:
       - 1.1.1.1

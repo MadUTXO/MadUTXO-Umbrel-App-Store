@@ -1,0 +1,31 @@
+manifestVersion: 1
+id: madutxo-libretranslate
+category: tools
+name: LibreTranslate
+icon: https://raw.githubusercontent.com/MadUTXO/community-umbrel-apps/master/madutxo-libretranslate/icon.png
+version: "v1.9.5"
+tagline: Free and Open Source Machine Translation API
+description: >-
+  LibreTranslate is a free and open source machine translation API.
+  It allows you to run your own self-hosted translation service
+  without relying on third-party services.
+
+
+  Features:
+  - Supports 30+ languages
+  - Self-hosted, privacy-focused
+  - Easy to set up and use
+  - Web interface for translation
+developer: LibreTranslate
+website: https://libretranslate.com
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/community-umbrel-apps
+dependencies: []
+repo: https://github.com/LibreTranslate/LibreTranslate
+support: https://github.com/LibreTranslate/LibreTranslate/issues
+port: 5000
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+releaseNotes: ""

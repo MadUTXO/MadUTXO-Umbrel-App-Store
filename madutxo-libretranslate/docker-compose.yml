@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: ${APP_MADUTXO_LIBRETRANSLATE_IP}
+      APP_PORT: ${APP_MADUTXO_LIBRETRANSLATE_PORT}
+      PROXY_AUTH_ADD: "false"
+
+  server:
+    image: libretranslate/libretranslate:v1.9.5
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/data:/data:rw
+    environment:
+      - TZ=${TZ:-UTC}
+    labels:
+      yantr.app: "madutxo-libretranslate"
+      yantr.service: "LibreTranslate Server"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
