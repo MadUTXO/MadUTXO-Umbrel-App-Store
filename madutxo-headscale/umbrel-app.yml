@@ -23,7 +23,7 @@ submission: https://github.com/MadUTXO/community-umbrel-apps
 dependencies: []
 repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
-port: 8080
+port: 8082
 gallery: []
 path: ""
 defaultUsername: ""
