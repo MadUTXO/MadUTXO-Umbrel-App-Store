@@ -1,6 +1,14 @@
 version: "3.7"
 
 services:
+  app_proxy:
+    image: alpine/socat:3.7.0
+    command: ["tcp-listen:5000,fork,reuseaddr,forever"]
+    network_mode: host
+    labels:
+      yantr.app: "madutxo-libretranslate"
+      yantr.service: "Web UI"
+
   server:
     image: libretranslate/libretranslate:v1.9.5
     command: ["--host", "0.0.0.0", "--port", "5000"]
