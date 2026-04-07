@@ -2,18 +2,19 @@ version: "3.7"
 
 services:
   server:
-    image: jauderho/headscale:v0.28.0
+    init: true
+    image: headscale/headscale:v0.28.0
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
     volumes:
+      - ${APP_DATA_DIR}/config:/etc/headscale:rw
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
     environment:
       - TZ=${TZ:-UTC}
     labels:
       yantr.app: "madutxo-headscale"
       yantr.service: "Headscale Server"
-    command: serve
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9090/health"]
       interval: 30s
