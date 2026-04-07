@@ -10,10 +10,18 @@ services:
   main:
     image: libretranslate/libretranslate:v1.6.5@sha256:a3518195e4e810ba0d9dd251a851f24918059d757ef3c5cf8e0f881daf4242fc
     restart: on-failure
-    tty: true
+    user: 1000:1000
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
+      - TZ=${TZ:-UTC}
       - LT_LOAD_ONLY=en,es,fr,de,it,pt
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
