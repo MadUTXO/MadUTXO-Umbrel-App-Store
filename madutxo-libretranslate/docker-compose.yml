@@ -2,7 +2,8 @@ version: "3.7"
 
 services:
   server:
-    image: libretranslate/libretranslate:v1.7.0
+    image: libretranslate/libretranslate:v1.9.5
+    command: ["--host", "0.0.0.0", "--port", "5000"]
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
