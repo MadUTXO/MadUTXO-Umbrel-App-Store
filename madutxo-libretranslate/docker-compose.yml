@@ -10,7 +10,8 @@ services:
       - ${APP_DATA_DIR}/data:/data:rw
     environment:
       - TZ=${TZ:-UTC}
-      - LT_HOST=127.0.0.1
+      - LT_HOST=0.0.0.0
+      - LT_LOAD_ONLY=en,es,fr,de,it,pt
     labels:
       yantr.app: "madutxo-libretranslate"
       yantr.service: "LibreTranslate Server"
