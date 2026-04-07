@@ -1,22 +1,38 @@
-version: "3.7"
+version: '3.7'
 
 services:
-  server:
-    image: jauderho/headscale:v0.28.0
+  main:
+    image: hwdsl2/headscale-server:latest
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
     volumes:
-      - ${APP_DATA_DIR}/config:/etc/headscale:rw
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
     environment:
       - TZ=${TZ:-UTC}
-    command: ["serve", "--config", "/etc/headscale/config.yaml"]
+      - HS_SERVER_URL=${HS_SERVER_URL:-http://192.168.1.1:8080}
+      - HS_LISTEN_PORT=8080
+      - HS_METRICS_PORT=9090
+      - HS_BASE_DOMAIN=headscale.internal
+      - HS_USERNAME=admin
+      - HS_DNS_SRV1=1.1.1.1
+      - HS_DNS_SRV2=1.0.0.1
+      - HS_LOG_LEVEL=info
     labels:
       yantr.app: "madutxo-headscale"
-      yantr.service: "Headscale Server"
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9090/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      yantr.service: "Headscale"
+
+  ui:
+    image: ghcr.io/gurucomputing/headscale-ui:latest
+    restart: on-failure
+    stop_grace_period: 1m
+    network_mode: host
+    environment:
+      - TZ=${TZ:-UTC}
+      - HTTP_PORT=8081
+    labels:
+      yantr.app: "madutxo-headscale"
+      yantr.service: "Web UI"
+
+volumes:
+  headscale_data:
