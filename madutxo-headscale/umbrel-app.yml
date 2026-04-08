@@ -11,11 +11,17 @@ description: >-
   allowing you to run your own VPN coordination server.
 
 
-  Features:
-  - Self-hosted Tailscale control server
-  - WireGuard-based VPN
-  - No proprietary dependencies
-  - Full control over your network
+  Getting started:
+  1. Open the Web UI (port 8083)
+  2. Enter the API URL: http://<your-umbrel-ip>:8080
+  3. Create an API key:
+     docker exec madutxo-headscale_main_1 headscale apikeys create
+  4. Paste the API key into the Web UI settings
+  5. Create a pre-auth key in the Web UI to connect devices
+
+
+  To connect a device, run:
+  tailscale up --login-server http://<your-umbrel-ip>:8080 --authkey <pre-auth-key>
 developer: Headscale team
 website: https://headscale.net
 submitter: MadUTXO
