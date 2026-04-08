@@ -18,21 +18,9 @@ services:
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
       - HS_LOG_LEVEL=error
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        KEY_FILE="/var/lib/headscale/api_key.txt"
-        if [ ! -f "$KEY_FILE" ]; then
-          /opt/src/run.sh &
-          HS_PID=$!
-          for i in $(seq 1 30); do [ -S /var/run/headscale/headscale.sock ] && break; sleep 1; done
-          sleep 3
-          KEY=$(headscale -c /etc/headscale/config.yaml apikeys create --expiration 8760h 2>&1 | grep -oP 'Key: \K[^\s]+' || echo "")
-          [ -n "$KEY" ] && echo "$KEY" > "$KEY_FILE" && chmod 600 "$KEY_FILE"
-          wait $HS_PID
-        else
-          exec /opt/src/run.sh
-        fi
+    labels:
+      yantr.app: "madutxo-headscale"
+      yantr.service: "Headscale"
 
   ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest
@@ -46,48 +34,3 @@ services:
     labels:
       yantr.app: "madutxo-headscale"
       yantr.service: "Web UI"
-
-  setup:
-    image: busybox:latest
-    restart: "no"
-    network_mode: host
-    volumes:
-      - ${APP_DATA_DIR}/data:/data:rw
-    command: >
-      sh -c "
-        echo 'Waiting for API key...'
-        while [ ! -f /data/api_key.txt ]; do sleep 2; done
-        KEY=\$(cat /data/api_key.txt)
-        cat > /data/index.html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset=\"UTF-8\">
-  <title>Headscale</title>
-  <style>
-    body{font-family:sans-serif;max-width:450px;margin:40px auto;padding:20px;background:#0f0f23;color:#eee}
-    .box{background:#1a1a2e;padding:24px;border-radius:12px}
-    h1{color:#00d4ff}
-    .key{background:#0f3460;padding:14px;border-radius:8px;font-family:monospace;word-break:break-all;margin:16px 0}
-    .btn{background:#00d4ff;color:#0f0f23;padding:14px;border:none;border-radius:8px;cursor:pointer;width:100%}
-  </style>
-</head>
-<body>
-  <div class=\"box\">
-    <h1>Headscale Setup</h1>
-    <p>Copy key → paste in Web UI (port 8083)</p>
-    <div class=\"key\" id=\"k\">\$KEY</div>
-    <button class=\"btn\" onclick=\"cp()\">Copy</button>
-  </div>
-  <script>
-    function cp(){navigator.clipboard.writeText(document.getElementById('k').textContent);document.querySelector('.btn').textContent='✓'}
-  </script>
-</body>
-</html>
-EOF
-        echo 'Setup ready: http://127.0.0.1:8084'
-        httpd -p 127.0.0.1:8084 -h /data
-      "
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Setup"
