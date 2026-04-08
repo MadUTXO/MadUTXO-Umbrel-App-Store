@@ -7,20 +7,18 @@ version: "v0.28.0"
 tagline: Open source Tailscale control server
 description: >-
   Headscale is an open source implementation of the Tailscale control server.
-  Run your own VPN server using the official Tailscale clients.
+  Run your own VPN using official Tailscale clients.
 
 
-  Setup (first time):
-  1. Open setup page at http://YOUR_IP:8084
-  2. Click "Copy" to copy the API key
-  3. Open Web UI at http://YOUR_IP:8083
-  4. Enter API URL: http://YOUR_IP:8080
-  5. Paste the API key
-  6. Create a pre-auth key in Web UI to connect devices
+  First-time setup:
+  1. Visit port 8084 to get your API key (wait ~10 seconds after install)
+  2. Open Web UI at port 8083
+  3. Enter API URL: http://YOUR_IP:8080
+  4. Paste the key
+  5. Create pre-auth keys to connect devices
 
 
-  Connect a device:
-  tailscale up --login-server http://YOUR_IP:8080 --authkey <pre-auth-key>
+  Connect: tailscale up --login-server http://YOUR_IP:8080 --authkey <key>
 developer: Headscale team
 website: https://headscale.net
 submitter: MadUTXO

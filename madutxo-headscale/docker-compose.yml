@@ -18,9 +18,22 @@ services:
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
       - HS_LOG_LEVEL=error
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Headscale"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        # Generate API key on first run (non-blocking)
+        KEY_FILE="/var/lib/headscale/api_key.txt"
+        if [ ! -f "$KEY_FILE" ]; then
+          /opt/src/run.sh &
+          HS_PID=$!
+          for i in $(seq 1 30); do [ -S /var/run/headscale/headscale.sock ] && break; sleep 1; done
+          sleep 3
+          KEY=$(headscale -c /etc/headscale/config.yaml apikeys create --expiration 8760h 2>&1 | grep -oP 'Key: \K[^\s]+' || echo "")
+          [ -n "$KEY" ] && echo "$KEY" > "$KEY_FILE" && chmod 600 "$KEY_FILE"
+          wait $HS_PID
+        else
+          exec /opt/src/run.sh
+        fi
 
   ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest
@@ -37,7 +50,7 @@ services:
 
   setup:
     image: busybox:latest
-    restart: on-failure
+    restart: "no"
     network_mode: host
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
