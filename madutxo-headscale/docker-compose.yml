@@ -21,10 +21,42 @@ services:
       - HS_USERNAME=admin
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
-      - HS_LOG_LEVEL=warn
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Headscale"
+      - HS_LOG_LEVEL=error
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        # Auto-generate API key on first run
+        KEY_FILE="/var/lib/headscale/api_key.txt"
+        if [ ! -f "$KEY_FILE" ]; then
+          echo "=== Generating API Key ==="
+          /opt/src/run.sh &
+          HS_PID=$!
+          # Wait for headscale to initialize
+          for i in $(seq 1 30); do
+            if [ -S /var/run/headscale/headscale.sock ]; then
+              break
+            fi
+            sleep 1
+          done
+          # Generate API key (expires in 1 year for convenience)
+          KEY_OUTPUT=$(headscale -c /etc/headscale/config.yaml apikeys create --expiration 8760h 2>&1)
+          KEY=$(echo "$KEY_OUTPUT" | grep -oP 'Key: \K[^\s]+' || echo "")
+          if [ -n "$KEY" ]; then
+            echo "$KEY" > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            echo "API Key generated and saved."
+            echo "=========================================="
+            echo "IMPORTANT: Save this API key!"
+            echo "$KEY"
+            echo "=========================================="
+            echo "You can also find it in: $KEY_FILE"
+            echo "=========================================="
+          fi
+          wait $HS_PID
+        else
+          echo "API Key already exists. Starting Headscale..."
+          exec /opt/src/run.sh
+        fi
 
   ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest

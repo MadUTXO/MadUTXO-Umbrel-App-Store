@@ -14,10 +14,10 @@ description: >-
   Getting started:
   1. Open the Web UI (port 8083)
   2. Enter the API URL: http://<your-umbrel-ip>:8080
-  3. Create an API key:
-     docker exec madutxo-headscale_main_1 headscale apikeys create
+  3. Get the API key:
+     docker exec madutxo-headscale_main_1 cat /var/lib/headscale/api_key.txt
   4. Paste the API key into the Web UI settings
-  5. Create a pre-auth key in the Web UI to connect devices
+  5. Create pre-auth keys in the Web UI to connect devices
 
 
   To connect a device, run:
