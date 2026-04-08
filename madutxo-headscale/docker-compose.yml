@@ -21,7 +21,7 @@ services:
       - HS_USERNAME=admin
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
-      - HS_LOG_LEVEL=info
+      - HS_LOG_LEVEL=warn
     labels:
       yantr.app: "madutxo-headscale"
       yantr.service: "Headscale"
@@ -31,6 +31,8 @@ services:
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
+    volumes:
+      - ${APP_DATA_DIR}/data:/var/lib/headscale:ro
     environment:
       - TZ=${TZ:-UTC}
       - HTTP_PORT=8083
