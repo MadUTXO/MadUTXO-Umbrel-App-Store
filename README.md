@@ -1,6 +1,6 @@
-# MadUtxo Community App Store
+# MadUTXO Community App Store
 
-A community-managed app store for Umbrel. Add this repository to your Umbrel to install Nostr VPN and other community-developed apps.
+A community-managed app store for Umbrel. Add this repository to your Umbrel to install other community-developed apps.
 
 ## How to Add This App Store to Your Umbrel
 
@@ -27,36 +27,3 @@ A community-managed app store for Umbrel. Add this repository to your Umbrel to 
    ```
 
 5. **Access your Umbrel dashboard** - the community apps should now be available!
-
-## Available Apps
-
-### Nostr VPN
-A Tailscale-style mesh VPN powered by Nostr for peer discovery and signaling, with WireGuard for the encrypted data plane.
-
-**Features:**
-- Nostr-based peer discovery and signaling
-- WireGuard encryption
-- NAT traversal support
-- Exit node support
-- MagicDNS support
-- Peer-to-peer mesh networking
-
-**Requirements:**
-- Host network mode (required for VPN)
-- NET_ADMIN capability
-- /dev/net/tun device access
-
-## Contributing
-
-To add your own apps to this community store:
-
-1. Fork this repository
-2. Add your app in a new folder (use prefix `madutxo-` e.g., `madutxo-my-app`)
-3. Include `umbrel-app.yml` and `docker-compose.yml` in your app folder
-4. Submit a pull request
-
-## Support
-
-For issues with Nostr VPN, visit: https://github.com/mmalmi/nostr-vpn/issues
-
-For Umbrel community app store questions, open an issue in this repository.
