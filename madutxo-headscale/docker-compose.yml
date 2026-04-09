@@ -25,7 +25,7 @@ services:
     ports:
       - "9080:80"
     environment:
-      - PORT=80
+      - HS_URL=http://127.0.0.1:8080
 
 volumes:
   data:
