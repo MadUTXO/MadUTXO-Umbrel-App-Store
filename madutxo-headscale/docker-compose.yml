@@ -16,11 +16,6 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
       - ${APP_DATA_DIR}/config:/etc/headscale:rw
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   ui:
     image: sergeyitsib/headscale-web:latest
@@ -28,43 +23,6 @@ services:
     stop_grace_period: 1m
     ports:
       - "9080:80"
-    depends_on:
-      headscale:
-        condition: service_healthy
-    volumes:
-      - ${APP_DATA_DIR}/data:/data:rw
-
-  init:
-    image: curlimages/curl:latest
-    restart: "no"
-    depends_on:
-      headscale:
-        condition: service_healthy
-    volumes:
-      - ${APP_DATA_DIR}/data:/data:rw
-    command: >
-      sh -c "
-        echo 'Waiting for Headscale API...';
-        sleep 10;
-        if [ ! -f /data/authkey.txt ]; then
-          echo 'Creating user and pre-auth key...';
-          curl -s -X POST http://headscale:8080/api/v1/user -H 'Content-Type: application/json' -d '{\"name\": \"admin\"}' || true;
-          sleep 2;
-          KEY_JSON=$(curl -s -X POST http://headscale:8080/api/v1/preauthkey -H 'Content-Type: application/json' -d '{\"user\": \"admin\", \"reusable\": true, \"expiration\": \"8760h\"}') || true;
-          KEY=$(echo \"$KEY_JSON\" | grep -oP '\"key\":\\s*\"\\K[^\"]+' | head -1);
-          if [ -n \"$KEY\" ]; then
-            echo \"$KEY\" > /data/authkey.txt;
-            echo '========================================';
-            echo 'PRE-AUTH KEY: '$KEY;
-            echo '========================================';
-          else
-            echo 'Failed to get key, response: '$KEY_JSON;
-          fi;
-        else
-          echo 'Auth key already exists: '$(cat /data/authkey.txt);
-        fi;
-        echo 'Setup complete';
-      "
 
 volumes:
   data:
