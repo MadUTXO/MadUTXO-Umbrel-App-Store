@@ -15,6 +15,7 @@ services:
       - "9090:9090"
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
+      - ${APP_DATA_DIR}/config:/etc/headscale:rw
 
   ui:
     image: sergeyitsib/headscale-web:latest
@@ -22,8 +23,6 @@ services:
     stop_grace_period: 1m
     ports:
       - "9080:80"
-    environment:
-      - HS_URL=http://host.docker.internal:8080
 
 volumes:
   data:
