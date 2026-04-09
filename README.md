@@ -1,55 +1,53 @@
 # MadUTXO Community App Store
 
-A community-managed app store for Umbrel (umbrelOS). This repository contains community-developed apps that you can install on your Umbrel node.
+Add community-made apps to your Umbrel. Simple as that.
 
-## Adding This App Store to Your Umbrel
+## How to Add This Store
 
-### Via Umbrel WebUI
+### Using the Umbrel Web Interface (Recommended)
 
-1. Open the Umbrel WebUI on your device (e.g., `http://umbrel.local`)
-2. Go to **Settings**
-3. Navigate to **App Store**
-4. Click on **Add App Store**
-5. Enter the URL of this repository:
+1. Open Umbrel in your browser (usually `http://umbrel.local`)
+2. Click **Settings** in the sidebar
+3. Go to **App Store**
+4. Click **Add App Store**
+5. Paste this URL:
    ```
    https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
    ```
-6. Click **Add** to confirm
-7. The community apps will now appear in your App Store
+6. Click **Add**
+7. Done! The apps will show up in your app store
 
-### Via Command Line
-
-If you prefer the terminal:
+### Using the Terminal
 
 ```bash
 cd ~/umbrel
 sudo ./scripts/app install https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
 ```
 
-## Available Apps
+## Apps
 
-For a list of available apps, browse this repository.
+Browse this repository to see what's available.
 
-## Support
+## Need Help?
 
-For issues or questions about specific apps, please refer to the individual app's documentation or open an issue in this repository.
+Open an issue here if something isn't working or you have questions.
 
-## Disclaimer
+## Important Disclaimer
 
-**IMPORTANT: By using this repository, you acknowledge and agree to the following:**
+⚠️ **Please read carefully before adding this store:**
 
-- **User Responsibility**: The installation and use of any apps from this community app store is entirely at your own risk. This is a community-maintained repository and is not affiliated with, endorsed by, or supported by the official Umbrel team.
+- **Your responsibility**: You install and use these apps at your own risk. This is a community project, not affiliated with Umbrel.
 
-- **Licenses & Terms**: You are solely responsible for ensuring that your use of any apps complies with their respective licenses and terms and conditions. Before installing any app, review its license and terms of service.
+- **Check licenses**: Each app has its own license and terms. Make sure you agree to them before installing.
 
-- **No Warranty**: The apps in this repository are provided "AS IS" without warranty of any kind, either express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, or non-infringement.
+- **No guarantees**: Apps are provided as-is. We don't guarantee they work perfectly or are secure.
 
-- **Data & Security**: You are responsible for securing your Umbrel node and any data associated with the apps you install. Always follow security best practices.
+- **Protect your data**: You're in charge of securing your Umbrel and your data. Follow good security practices.
 
-- ** Liability**: The maintainers of this repository shall not be held liable for any damages, data loss, or other issues arising from the use of apps in this community app store.
+- **No liability**: We can't be held responsible if something goes wrong, you lose data, or anything else happens.
 
-By adding this repository to your Umbrel and installing any apps from it, you confirm that you have read, understood, and agree to this disclaimer.
+By adding this store and installing apps, you agree to these terms.
 
-## License
+---
 
-This repository is open source and available under the MIT License.
+License: MIT
