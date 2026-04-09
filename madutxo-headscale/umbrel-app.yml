@@ -3,14 +3,14 @@ id: madutxo-headscale
 category: networking
 name: Headscale
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-headscale/icon.png
-version: "v0.22"
+version: "v0.16.2"
 tagline: Open source Tailscale control server
 description: >-
   Headscale is an open source implementation of the Tailscale control server.
   Run your own VPN using official Tailscale clients.
 
-  The API key is auto-generated on first start. Open Web UI at port 9080
-  and enter the server URL (http://YOUR_IP:8080) and the API key from logs.
+  First-time setup: Generate a pre-auth key via Umbrel Docker terminal:
+  docker exec madutxo-headscale_headscale_1 headscale preauthkeys create --user admin --reusable
 
   Connect: tailscale up --login-server http://YOUR_IP:8080 --authkey <key>
 developer: Headscale team
@@ -21,8 +21,4 @@ dependencies: []
 repo: https://github.com/juanfont/headscale
 support: https://github.com/juanfont/headscale/issues
 port: 9080
-gallery: []
-path: ""
-defaultUsername: ""
-defaultPassword: ""
-releaseNotes: "- Downgrade to v0.22 for simpler config"
+releaseNotes: "- Try v0.16.2"
