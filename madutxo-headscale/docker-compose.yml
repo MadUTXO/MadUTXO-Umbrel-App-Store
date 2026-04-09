@@ -8,12 +8,7 @@ services:
 
   main:
     image: hwdsl2/headscale-server:latest
-    user: "1000:1000"
     restart: on-failure
-    stop_grace_period: 1m
-    ports:
-      - "8080:8080"
-      - "9090:9090"
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
     environment:
@@ -26,39 +21,22 @@ services:
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
       - HS_LOG_LEVEL=error
-    networks:
-      default:
-        ipv4_address: ${APP_MADUTXO_HEADSCALE_IP}
 
   ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest
-    user: "1000:1000"
     restart: on-failure
-    stop_grace_period: 1m
-    ports:
-      - "8083:3000"
     environment:
       - TZ=${TZ:-UTC}
       - PORT=3000
 
   setup:
     build: ./docker
-    user: "1000:1000"
     container_name: madutxo-headscale_setup
     restart: on-failure
-    stop_grace_period: 1m
     ports:
       - "8084:8084"
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
-      - /var/run/headscale:/var/run/headscale:rw
-
-networks:
-  default:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: ${APP_MADUTXO_HEADSCALE_IP:-10.21.21.0/24}
 
 volumes:
   data:
