@@ -16,14 +16,6 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
       - ${APP_DATA_DIR}/config:/etc/headscale:rw
-    command: >
-      sh -c "
-        echo 'Running first-time setup...';
-        headscale -c /etc/headscale/config.yaml users create admin 2>/dev/null || true;
-        headscale -c /etc/headscale/config.yaml preauthkeys create --user admin --reusable --expiration 8760h 2>/dev/null || true;
-        echo 'Setup complete, starting server...';
-        exec headscale -c /etc/headscale/config.yaml serve;
-      "
 
   ui:
     image: sergeyitsib/headscale-web:latest
