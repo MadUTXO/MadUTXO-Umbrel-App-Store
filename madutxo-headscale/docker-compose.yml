@@ -3,11 +3,13 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: madutxo-headscale_headplane_1
-      APP_PORT: 3000
+      APP_HOST: madutxo-headscale_ui_1
+      APP_PORT: 80
 
   headscale:
-    image: headscale/headscale:v0.28
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: on-failure
     stop_grace_period: 1m
     ports:
@@ -16,20 +18,14 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
 
-  headplane:
-    image: ghcr.io/tale/headplane:latest
+  ui:
+    image: sergeyitsib/headscale-web:latest
     restart: on-failure
     stop_grace_period: 1m
     ports:
-      - "3000:3000"
-    volumes:
-      - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
+      - "9080:80"
     environment:
-      - TZ=${TZ:-UTC}
-      - HEADPLANE_LOAD_ENV_OVERRIDES=true
-      - HEADPLANE_HEADSCALE__URL=http://127.0.0.1:8080
-      - HEADPLANE_HEADSCALE__API_KEY_PATH=/var/lib/headscale/api_key.txt
-      - HEADPLANE_SERVER__COOKIE_SECRET_PATH=/var/lib/headscale/cookie_secret
+      - PORT=80
 
 volumes:
   data:
