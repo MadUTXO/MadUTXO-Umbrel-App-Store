@@ -8,37 +8,28 @@ services:
 
   headscale:
     image: headscale/headscale:v0.28
-    user: "1000:1000"
-    init: true
     restart: on-failure
     stop_grace_period: 1m
-    network_mode: host
+    ports:
+      - "8080:8080"
+      - "9090:9090"
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
-      - ${APP_DATA_DIR}/config:/etc/headscale:rw
-    command: serve
 
   headplane:
     image: ghcr.io/tale/headplane:latest
-    user: "1000:1000"
-    init: true
     restart: on-failure
     stop_grace_period: 1m
-    network_mode: host
+    ports:
+      - "3000:3000"
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
-      - ${APP_DATA_DIR}/config:/etc/headscale:rw
     environment:
       - TZ=${TZ:-UTC}
       - HEADPLANE_LOAD_ENV_OVERRIDES=true
       - HEADPLANE_HEADSCALE__URL=http://127.0.0.1:8080
       - HEADPLANE_HEADSCALE__API_KEY_PATH=/var/lib/headscale/api_key.txt
       - HEADPLANE_SERVER__COOKIE_SECRET_PATH=/var/lib/headscale/cookie_secret
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   data:

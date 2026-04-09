@@ -10,9 +10,9 @@ description: >-
   Run your own VPN using official Tailscale clients.
 
   First-time setup:
-  1. Open Web UI - API key is auto-generated on first start
-  2. Login with the auto-generated API key
-  3. Create pre-auth keys to connect devices
+  1. Open Web UI at port 3000
+  2. Run: docker exec madutxo-headscale_headscale_1 headscale apikeys create --expiration 8760h
+  3. Copy the API key and paste in the UI
 
   Connect: tailscale up --login-server http://YOUR_IP:8080 --authkey <key>
 developer: Headscale team
