@@ -5,10 +5,11 @@ DATA_DIR="/var/lib/headscale"
 CONFIG_DIR="/etc/headscale"
 KEY_FILE="$DATA_DIR/api_key.txt"
 COOKIE_FILE="$DATA_DIR/cookie_secret"
+HEADPLANE_CONFIG="/etc/headplane/config.yaml"
 
 echo "=== Headscale First-Start Setup ==="
 
-mkdir -p "$DATA_DIR" "$CONFIG_DIR"
+mkdir -p "$DATA_DIR" "$CONFIG_DIR" "/etc/headplane" "/var/lib/headplane"
 
 if [ ! -f "$CONFIG_DIR/config.yaml" ]; then
     echo "Creating default config.yaml..."
@@ -75,6 +76,24 @@ if [ ! -f "$COOKIE_FILE" ]; then
     echo "Generating cookie secret..."
     openssl rand -base64 24 > "$COOKIE_FILE"
     chmod 600 "$COOKIE_FILE"
+fi
+
+if [ ! -f "$HEADPLANE_CONFIG" ]; then
+    echo "Creating Headplane config.yaml..."
+    cat > "$HEADPLANE_CONFIG" << EOF
+server:
+  host: "0.0.0.0"
+  port: 3000
+  data_path: /var/lib/headplane
+
+headscale:
+  url: http://127.0.0.1:8080
+  api_key_path: $KEY_FILE
+
+integration:
+  docker:
+    enabled: false
+EOF
 fi
 
 echo "=== Starting Headscale ==="

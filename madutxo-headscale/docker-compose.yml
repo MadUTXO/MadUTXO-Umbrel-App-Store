@@ -29,11 +29,13 @@ services:
     network_mode: host
     volumes:
       - ${APP_DATA_DIR}/data:/var/lib/headscale:rw
+      - ${APP_DATA_DIR}/config:/etc/headscale:rw
     environment:
       - TZ=${TZ:-UTC}
-      - HEADSCALE_URL=http://127.0.0.1:8080
-      - HEADSCALE_API_KEY_FILE=/var/lib/headscale/api_key.txt
-      - SERVER_COOKIE_SECRET_FILE=/var/lib/headscale/cookie_secret
+      - HEADPLANE_LOAD_ENV_OVERRIDES=true
+      - HEADPLANE_HEADSCALE__URL=http://127.0.0.1:8080
+      - HEADPLANE_HEADSCALE__API_KEY_PATH=/var/lib/headscale/api_key.txt
+      - HEADPLANE_SERVER__COOKIE_SECRET_PATH=/var/lib/headscale/cookie_secret
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/health"]
       interval: 30s
