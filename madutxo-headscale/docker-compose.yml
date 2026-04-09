@@ -36,14 +36,15 @@ services:
       yantr.service: "Web UI"
 
   setup:
-    image: busybox:latest
+    build: ./docker
+    container_name: madutxo-headscale_setup
     restart: on-failure
     network_mode: host
     ports:
       - "8084:8084"
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
-    command: ["sh", "-c", "httpd -p 8084 -h /data"]
+      - /var/run/headscale:/var/run/headscale:rw
     labels:
       yantr.app: "madutxo-headscale"
       yantr.service: "Setup"
