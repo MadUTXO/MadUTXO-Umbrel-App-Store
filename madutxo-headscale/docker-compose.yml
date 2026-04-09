@@ -1,8 +1,14 @@
-version: '3.7'
+version: "3.7"
 
 services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-headscale_main_1
+      APP_PORT: 8080
+
   main:
     image: hwdsl2/headscale-server:latest
+    user: "1000:1000"
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
@@ -18,12 +24,10 @@ services:
       - HS_DNS_SRV1=1.1.1.1
       - HS_DNS_SRV2=1.0.0.1
       - HS_LOG_LEVEL=error
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Headscale"
 
   ui:
     image: ghcr.io/gurucomputing/headscale-ui:latest
+    user: "1000:1000"
     restart: on-failure
     stop_grace_period: 1m
     network_mode: host
@@ -31,20 +35,19 @@ services:
       - TZ=${TZ:-UTC}
       - HTTP_PORT=8083
       - HTTPS_PORT=8445
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Web UI"
 
   setup:
     build: ./docker
+    user: "1000:1000"
     container_name: madutxo-headscale_setup
     restart: on-failure
+    stop_grace_period: 1m
     network_mode: host
     ports:
       - "8084:8084"
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
       - /var/run/headscale:/var/run/headscale:rw
-    labels:
-      yantr.app: "madutxo-headscale"
-      yantr.service: "Setup"
+
+volumes:
+  data:
