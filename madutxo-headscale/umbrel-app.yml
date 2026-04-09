@@ -3,7 +3,7 @@ id: madutxo-headscale
 category: networking
 name: Headscale
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-headscale/icon.png
-version: "v0.28"
+version: "v0.22"
 tagline: Open source Tailscale control server
 description: >-
   Headscale is an open source implementation of the Tailscale control server.
@@ -25,4 +25,4 @@ gallery: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
-releaseNotes: "- Switched to simpler headscale-web UI with auto API key"
+releaseNotes: "- Downgrade to v0.22 for simpler config"
