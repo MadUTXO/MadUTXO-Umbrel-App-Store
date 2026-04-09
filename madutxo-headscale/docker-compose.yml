@@ -7,9 +7,7 @@ services:
       APP_PORT: 80
 
   headscale:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: headscale/headscale:v0.28
     restart: on-failure
     stop_grace_period: 1m
     ports:
