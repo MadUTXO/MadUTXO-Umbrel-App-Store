@@ -30,13 +30,12 @@ services:
       - PORT=3000
 
   setup:
-    build: ./docker
-    container_name: madutxo-headscale_setup
+    image: nginx:alpine
     restart: on-failure
     ports:
-      - "8084:8084"
+      - "8084:80"
     volumes:
-      - ${APP_DATA_DIR}/data:/data:rw
+      - ${APP_DATA_DIR}/setup:/usr/share/nginx/html:ro
 
 volumes:
   data:

@@ -11,11 +11,10 @@ description: >-
 
 
   First-time setup:
-  1. Visit port 8084 to get your API key (wait ~10 seconds after install)
-  2. Open Web UI at port 8083
+  1. Open Web UI at port 8083
+  2. Get API key from logs: docker logs madutxo-headscale_main_1
   3. Enter API URL: http://YOUR_IP:8080
-  4. Paste the key
-  5. Create pre-auth keys to connect devices
+  4. Create pre-auth keys to connect devices
 
 
   Connect: tailscale up --login-server http://YOUR_IP:8080 --authkey <key>
