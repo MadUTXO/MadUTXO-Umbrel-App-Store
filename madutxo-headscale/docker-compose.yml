@@ -22,12 +22,12 @@ services:
 
   ui:
     image: sergeyitsib/headscale-web:latest
-    user: "1000:1000"
-    init: true
     restart: on-failure
     stop_grace_period: 1m
     ports:
       - "9080:80"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data:rw
 
 volumes:
   data:
