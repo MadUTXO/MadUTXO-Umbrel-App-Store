@@ -7,9 +7,7 @@ services:
       APP_PORT: 3000
 
   headscale:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: headscale/headscale:v0.28
     user: "1000:1000"
     init: true
     restart: on-failure
