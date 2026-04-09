@@ -32,10 +32,20 @@ services:
   setup:
     image: nginx:alpine
     restart: on-failure
-    ports:
-      - "8084:80"
+    network_mode: host
     volumes:
-      - ${APP_DATA_DIR}/setup:/usr/share/nginx/html:ro
+      - ${APP_DATA_DIR}/setup:/usr/share/nginx/html
+    command: >
+      sh -c "echo '<!DOCTYPE html>
+<html><head><title>Headscale Setup</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:50px auto;padding:20px;background:#f5f5f5}
+h1{color:#333}.info{background:#fff;padding:15px;border-radius:8px;margin:10px 0}
+code{background:#e0e0e0;padding:2px 6px;border-radius:4px}</style></head>
+<body><h1>Headscale Setup</h1>
+<div class=info><p>1. Check container logs for API key:<br><code>docker logs madutxo-headscale_main_1</code></p>
+<p>2. Open Web UI at port <strong>8083</strong></p>
+<p>3. Enter API URL: <code>http://YOUR_IP:8080</code></p>
+<p>4. Paste your API key and save</p></div></body></html>' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
 
 volumes:
   data:
