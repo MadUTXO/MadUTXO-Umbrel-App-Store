@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madtuxo-opencode_server_1
+      APP_PORT: 4096
+
+  server:
+    image: ghcr.io/anomalyco/opencode:latest
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    command: ["web", "--hostname", "0.0.0.0", "--port", "4096"]
+    ports:
+      - "4096:4096"
+    volumes:
+      - ${APP_DATA_DIR}/data:/home/opencode
+    environment:
+      HOME: /home/opencode
+
+volumes:
+  data:
