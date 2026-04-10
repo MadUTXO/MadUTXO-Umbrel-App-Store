@@ -16,9 +16,9 @@ services:
     ports:
       - "4096:4096"
     volumes:
-      - ${APP_DATA_DIR}/data:/home/opencode
+      - ${APP_DATA_DIR}/data:/data
     environment:
-      HOME: /home/opencode
+      HOME: /data
 
 volumes:
   data:
