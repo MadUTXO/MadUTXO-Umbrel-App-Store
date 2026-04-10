@@ -2,6 +2,7 @@ manifestVersion: 1
 id: madtuxo-opencode
 category: developer
 name: OpenCode
+icon: https://ipfs.io/ipfs/Qma92doZsMdGrS46v8GqXCgvzomrXKZPm3fFgjmwd8k9RA
 version: "latest"
 tagline: AI coding assistant in browser
 description: >-
