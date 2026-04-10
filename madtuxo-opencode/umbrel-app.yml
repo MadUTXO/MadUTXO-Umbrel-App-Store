@@ -7,8 +7,7 @@ tagline: AI coding assistant in browser
 description: >-
   OpenCode is an AI-powered browser IDE combining editor, terminal, and AI code support.
   It includes file browsing, command execution, AI-assisted debugging and code explanations,
-  git integration, and cloud workspace sharing. Great for flexible development,
-  remote coding, and quick sessions.
+  git integration, and cloud workspace sharing.
 developer: Anomaly Co
 website: https://github.com/anomalyco/opencode
 submitter: MadUTXO
