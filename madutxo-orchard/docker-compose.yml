@@ -5,20 +5,8 @@ services:
     environment:
       APP_HOST: madutxo-orchard_orchard_1
       APP_PORT: 3321
-    container_name: madutxo-orchard_app_proxy_1
-
+      
   orchard:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
-    restart: unless-stopped
+    restart: on-failure
     stop_grace_period: 1m
-    container_name: madutxo-orchard_orchard_1
-    environment:
-      TZ: ${TZ:-UTC}
-      SETUP_KEY: ${APP_SEED:-orchardkey}
-      SERVER_HOST: localhost
-      SERVER_PORT: "3321"
-      NODE_ENV: production
-      DOCKER_ENV: "true"
-      MINT_DATANAME: mint.sqlite3
-      MINT_DATADIR: /app/data/mint-data
-      MINT_RPC_MTLS: "false"
