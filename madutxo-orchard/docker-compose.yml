@@ -19,13 +19,19 @@ services:
       - "3321:3321"
     volumes:
       - ${APP_DATA_DIR}/data:/app/data
+      - ${APP_DATA_DIR}/mint-data:/app/data/mint-data
     environment:
       TZ: ${TZ:-UTC}
-      NODE_ENV: production
-      SERVER_HOST: 0.0.0.0
+      SETUP_KEY: ${APP_SEED:-orchardkey}
+      SERVER_HOST: localhost
       SERVER_PORT: "3321"
+      NODE_ENV: production
+      DOCKER_ENV: "true"
+      MINT_DATANAME: mint.sqlite3
+      MINT_DATADIR: /app/data/mint-data
       MINT_RPC_MTLS: "false"
-      DATABASE_DIR: /app/data
+    tmpfs:
+      - /app/data/tmp
 
 volumes:
   data:
