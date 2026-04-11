@@ -1,40 +1,45 @@
-version: '3.7'
+version: "3.7"
 
 services:
   app_proxy:
+    depends_on:
+      - orchard
     environment:
       APP_HOST: madutxo-orchard_orchard_1
       APP_PORT: 3321
 
   orchard:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
+    user: "1000:1000"
+    init: true
     restart: on-failure
     stop_grace_period: 1m
+    command: ["npm", "run", "start"]
+    volumes:
+      - ${APP_DATA_DIR}/data:/app/data
+      - ${APP_DATA_DIR}/mint-data:/app/data/mint-data
     environment:
+      TZ: ${TZ:-UTC}
       NODE_ENV: production
       SERVER_HOST: 0.0.0.0
-      SERVER_PORT: '3321'
-      DOCKER_ENV: 'true'
+      SERVER_PORT: "3321"
       MINT_DATANAME: mint.sqlite3
       MINT_DATADIR: /app/data/mint-data
-      MINT_RPC_MTLS: 'false'
+      MINT_RPC_MTLS: "false"
       DATABASE_DIR: /app/data
       BITCOIN_TYPE: core
-      BITCOIN_RPC_HOST: "${APP_BITCOIN_NODE_IP}"
-      BITCOIN_RPC_PORT: "${APP_BITCOIN_RPC_PORT}"
-      BITCOIN_RPC_USER: "${APP_BITCOIN_RPC_USER}"
-      BITCOIN_RPC_PASSWORD: "${APP_BITCOIN_RPC_PASS}"
+      BITCOIN_RPC_HOST: ${APP_BITCOIN_NODE_IP}
+      BITCOIN_RPC_PORT: ${APP_BITCOIN_RPC_PORT}
+      BITCOIN_RPC_USER: ${APP_BITCOIN_RPC_USER}
+      BITCOIN_RPC_PASSWORD: ${APP_BITCOIN_RPC_PASS}
       LIGHTNING_TYPE: lnd
-      LIGHTNING_RPC_HOST: "${APP_LIGHTNING_NODE_IP}"
-      LIGHTNING_RPC_PORT: "${APP_LIGHTNING_NODE_PORT}"
-      LIGHTNING_REST_PORT: "${APP_LIGHTNING_NODE_REST_PORT}"
+      LIGHTNING_RPC_HOST: ${APP_LIGHTNING_NODE_IP}
+      LIGHTNING_RPC_PORT: ${APP_LIGHTNING_NODE_PORT}
+      LIGHTNING_REST_PORT: ${APP_LIGHTNING_NODE_REST_PORT}
       LIGHTNING_MACAROON: /app/certs/lightning/admin.macaroon
       LIGHTNING_CERT: /app/certs/lightning/tls.cert
-    volumes:
-      - "${APP_DATA_DIR}/data:/app/data"
-      - "${APP_DATA_DIR}/mint-data:/app/data/mint-data"
-      - "${APP_BITCOIN_DATA_DIR}:/bitcoin:ro"
-      - "${APP_LIGHTNING_NODE_DATA_DIR}/tls.cert:/app/certs/lightning/tls.cert:ro"
-      - "${APP_LIGHTNING_NODE_DATA_DIR}/data/chain/bitcoin/${APP_BITCOIN_NETWORK}/admin.macaroon:/app/certs/lightning/admin.macaroon:ro"
     tmpfs:
       - /app/data/tmp
+
+volumes:
+  data:
