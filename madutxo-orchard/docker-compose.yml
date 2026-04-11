@@ -18,7 +18,6 @@ services:
       - ${APP_DATA_DIR}/data:/app/data
       - ${APP_BITCOIN_DATA_DIR}:/bitcoin:ro
       - ${APP_LIGHTNING_NODE_DATA_DIR}:/lnd:ro
-      - ${APP_CORE_LIGHTNING_NODE_DATA_DIR}:/cln:ro
     environment:
       TZ: ${TZ:-UTC}
       NODE_ENV: production
@@ -37,6 +36,8 @@ services:
       LIGHTNING_REST_PORT: ${APP_LIGHTNING_NODE_REST_PORT}
       LIGHTNING_MACAROON: /lnd/data/chain/bitcoin/${APP_BITCOIN_NETWORK}/admin.macaroon
       LIGHTNING_CERT: /lnd/tls.cert
+    tmpfs:
+      - /app/data/tmp
 
 volumes:
   data:
