@@ -1,0 +1,25 @@
+manifestVersion: 1
+id: madutxo-orchard
+category: finance
+name: Orchard
+icon: https://raw.githubusercontent.com/cashubtc/orchard/master/src/client/assets/img/orchard-logo.svg
+version: "v1.8.1"
+tagline: Your sovereign bank in cyberspace
+description: >-
+  Orchard is a web application for Cashu mint management.
+
+  Run your own Cashu mint with an intuitive web interface for managing
+  Bitcoin-backed ecash tokens. Supports integration with Bitcoin Core,
+  Lightning Network (LND/CLN), Taproot Assets, and AI capabilities.
+
+  First-time setup: Access the web UI and configure your mint settings.
+  Connect your Bitcoin node and Lightning node for full functionality.
+developer: cashubtc
+website: https://orchard.space
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+dependencies: []
+repo: https://github.com/cashubtc/orchard
+support: https://github.com/cashubtc/orchard/discussions
+port: 3321
+releaseNotes: "- Updated to v1.8.1 (Organization Migration)"

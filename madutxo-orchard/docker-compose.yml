@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-orchard_orchard_1
+      APP_PORT: 3321
+
+  orchard:
+    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    ports:
+      - "3321:3321"
+    volumes:
+      - ${APP_DATA_DIR}/data:/app/data
+    environment:
+      TZ: ${TZ:-UTC}
+      NODE_ENV: production
+      SERVER_HOST: 0.0.0.0
+      SETUP_KEY: ${APP_SEED:-orchardkey}
+      DATABASE_DIR: /app/data
+      MINT_RPC_MTLS: "false"
+    tmpfs:
+      - /app/data/tmp
+
+volumes:
+  data:
