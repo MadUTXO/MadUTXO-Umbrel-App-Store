@@ -11,3 +11,12 @@ services:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
     restart: on-failure
     stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/data:/app/data
+    environment:
+      TZ: ${TZ:-UTC}
+      NODE_ENV: production
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "3321"
+      DOCKER_ENV: "true"
+      DATABASE_DIR: /app/data
