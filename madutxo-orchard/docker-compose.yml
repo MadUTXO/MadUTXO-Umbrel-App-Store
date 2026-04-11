@@ -8,5 +8,11 @@ services:
       
   orchard:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
+    user: "1000:1000"
+    init: true
     restart: on-failure
     stop_grace_period: 1m
+    environment:
+      NODE_ENV: production
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "3321"
