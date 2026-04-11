@@ -1,4 +1,4 @@
-manifestVersion: "1.1"
+manifestVersion: 1
 id: madutxo-opencode
 category: developer
 name: OpenCode
@@ -19,4 +19,4 @@ gallery: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
-releaseNotes: "- Initial release"
+releaseNotes: ""
