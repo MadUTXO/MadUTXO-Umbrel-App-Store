@@ -7,7 +7,7 @@ services:
       APP_PORT: 3321
 
   orchard:
-    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:v1.8.1
+    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
     user: "1000:1000"
     init: true
     restart: on-failure
@@ -36,8 +36,6 @@ services:
       LIGHTNING_REST_PORT: ${APP_LIGHTNING_NODE_REST_PORT}
       LIGHTNING_MACAROON: /lnd/data/chain/bitcoin/${APP_BITCOIN_NETWORK}/admin.macaroon
       LIGHTNING_CERT: /lnd/tls.cert
-    tmpfs:
-      - /app/data/tmp
 
 volumes:
   data:
