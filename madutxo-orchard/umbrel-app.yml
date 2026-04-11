@@ -9,8 +9,8 @@ description: >-
   Orchard is a web application for Cashu mint management.
 
   Run your own Cashu mint with an intuitive web interface for managing
-  Bitcoin-backed ecash tokens. Automatically connects to your Umbrel
-  Bitcoin Core and Lightning Network (LND) nodes for seamless setup.
+  Bitcoin-backed ecash tokens. Requires Umbrel Bitcoin Core and Lightning
+  Network (LND) nodes for operation.
 
   Features:
   - Auto-connects to Umbrel Bitcoin Core
@@ -23,6 +23,7 @@ submitter: MadUTXO
 submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
 dependencies:
   - bitcoin
+  - lightning
 repo: https://github.com/cashubtc/orchard
 support: https://github.com/cashubtc/orchard/discussions
 port: 3321

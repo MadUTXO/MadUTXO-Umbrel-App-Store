@@ -17,6 +17,7 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data:/app/data
       - ${APP_BITCOIN_DATA_DIR}:/bitcoin:ro
+      - ${APP_LIGHTNING_NODE_DATA_DIR}:/lnd:ro
     environment:
       TZ: ${TZ:-UTC}
       NODE_ENV: production
@@ -24,19 +25,19 @@ services:
       SETUP_KEY: ${APP_SEED:-orchardkey}
       DATABASE_DIR: /app/data
       MINT_RPC_MTLS: "false"
-      # Bitcoin Core (required)
+      # Bitcoin Core
       BITCOIN_TYPE: core
       BITCOIN_RPC_HOST: ${APP_BITCOIN_NODE_IP}
       BITCOIN_RPC_PORT: ${APP_BITCOIN_RPC_PORT}
       BITCOIN_RPC_USER: ${APP_BITCOIN_RPC_USER}
       BITCOIN_RPC_PASSWORD: ${APP_BITCOIN_RPC_PASS}
-      # Lightning (optional - only if lightning app is installed)
-      LIGHTNING_TYPE: ${APP_LIGHTNING_NODE_IP:+lnd}
-      LIGHTNING_RPC_HOST: ${APP_LIGHTNING_NODE_IP:-}
-      LIGHTNING_RPC_PORT: ${APP_LIGHTNING_NODE_PORT:-}
-      LIGHTNING_REST_PORT: ${APP_LIGHTNING_NODE_REST_PORT:-}
-      LIGHTNING_MACAROON: ${APP_LIGHTNING_NODE_IP:+//lnd/data/chain/bitcoin/${APP_BITCOIN_NETWORK}/admin.macaroon}
-      LIGHTNING_CERT: ${APP_LIGHTNING_NODE_IP:+//lnd/tls.cert}
+      # Lightning (LND)
+      LIGHTNING_TYPE: lnd
+      LIGHTNING_RPC_HOST: ${APP_LIGHTNING_NODE_IP}
+      LIGHTNING_RPC_PORT: ${APP_LIGHTNING_NODE_PORT}
+      LIGHTNING_REST_PORT: ${APP_LIGHTNING_NODE_REST_PORT}
+      LIGHTNING_MACAROON: /lnd/data/chain/bitcoin/${APP_BITCOIN_NETWORK}/admin.macaroon
+      LIGHTNING_CERT: /lnd/tls.cert
     tmpfs:
       - /app/data/tmp
 
