@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-orchard
 category: finance
 name: Orchard
-icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-orchard/icon.png
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-orchard/icon_256.png
 version: "v1.8.1"
 tagline: Your sovereign bank in cyberspace
 description: >-
