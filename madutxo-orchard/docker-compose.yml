@@ -2,13 +2,16 @@ version: "3.7"
 
 services:
   app_proxy:
+    depends_on:
+      - orchard
     environment:
       APP_HOST: madutxo-orchard_orchard_1
       APP_PORT: 3321
-      PROXY_AUTH_ADD: "false"
 
   orchard:
-    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
+    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest@sha256:1c2b6e9256a4d60f6d48a50ec6a8a692ee6733c4f25dcf103211e64a2e551720
+    user: "1000:1000"
+    init: true
     restart: on-failure
     stop_grace_period: 1m
     volumes:
