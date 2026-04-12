@@ -9,7 +9,7 @@ services:
       APP_PORT: 3321
 
   orchard:
-    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:latest
+    image: ghcr.io/cashubtc/orchard-mintdb-sqlite:v1.8.1
     user: "1000:1000"
     init: true
     restart: on-failure
