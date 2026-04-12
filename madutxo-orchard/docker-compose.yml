@@ -19,6 +19,7 @@ services:
       - ${APP_DATA_DIR}/mint-data:/app/data/mint-data
     environment:
       TZ: ${TZ:-UTC}
+      SETUP_KEY: ${APP_SEED}
       NODE_ENV: production
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: "3321"
