@@ -3,13 +3,12 @@ version: "3.7"
 services:
   app_proxy:
     depends_on:
-      - orchard
+      - web
     environment:
-      APP_HOST: madutxo-orchard_orchard_1
+      APP_HOST: madutxo-orchard_web_1
       APP_PORT: 3321
 
-  orchard:
-    container_name: madutxo-orchard_orchard_1
+  web:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:1.8.0
     user: "1000:1000"
     init: true
