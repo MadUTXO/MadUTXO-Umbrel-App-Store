@@ -9,8 +9,10 @@ services:
 
   main:
     image: libretranslate/libretranslate:v1.6.5@sha256:a3518195e4e810ba0d9dd251a851f24918059d757ef3c5cf8e0f881daf4242fc
-    restart: on-failure
-    user: 1000:1000
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 1m
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -25,6 +27,3 @@ services:
       - LT_LOAD_ONLY=en,es,fr,de,it,pt
     volumes:
       - ${APP_DATA_DIR}/data:/data:rw
-    labels:
-      yantr.app: "madutxo-libretranslate"
-      yantr.service: "LibreTranslate Server"

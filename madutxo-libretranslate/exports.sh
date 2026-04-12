@@ -1,10 +1,6 @@
-# LibreTranslate environment exports
+#!/usr/bin/env bash
+set -euo pipefail
 
-# IP ADDRESSES
-export APP_MADUTXO_LIBRETRANSLATE_IP="10.21.21.11"
-
-# DATA DIR
-export APP_MADUTXO_LIBRETRANSLATE_DATA_DIR="${EXPORTS_APP_DIR}/data/madutxo-libretranslate"
-
-# PORTS
 export APP_MADUTXO_LIBRETRANSLATE_PORT="5000"
+
+exit 0

@@ -1,10 +1,6 @@
-# Headscale environment exports
+#!/usr/bin/env bash
+set -euo pipefail
 
-# IP ADDRESSES
-export APP_MADUTXO_HEADSCALE_IP="10.21.21.10"
-
-# DATA DIR
-export APP_MADUTXO_HEADSCALE_DATA_DIR="${EXPORTS_APP_DIR}/data/madutxo-headscale"
-
-# PORTS
 export APP_MADUTXO_HEADSCALE_PORT="8080"
+
+exit 0
