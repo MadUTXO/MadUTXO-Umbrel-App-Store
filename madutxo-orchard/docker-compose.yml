@@ -7,6 +7,7 @@ services:
     environment:
       APP_HOST: madutxo-orchard_web_1
       APP_PORT: 3321
+      PROXY_AUTH_ADD: "false"
 
   web:
     image: ghcr.io/cashubtc/orchard-mintdb-sqlite:1.8.0
