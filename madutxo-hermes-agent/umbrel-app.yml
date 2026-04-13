@@ -2,6 +2,7 @@ manifestVersion: 1.1
 id: madutxo-hermes-agent
 category: ai
 name: Hermes Agent
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-hermes-agent/icon.png
 version: "v0.50.12"
 tagline: The AI agent that grows with you
 port: 8600
