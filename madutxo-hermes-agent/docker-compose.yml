@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    depends_on:
+      - server
+    environment:
+      APP_HOST: madutxo-hermes-agent_web_1
+      APP_PORT: 8080
+
+  server:
+    image: nousresearch/hermes-agent:latest@sha256:08e92cb8bf73041b8545f81f61f94b56f84bd4fd387d3d6ceb78e26ff7fb17d9
+    command: gateway run
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 1m
+    environment:
+      HERMES_UID: "1000"
+      HERMES_GID: "1000"
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${APP_DATA_DIR}/data/hermes:/opt/data
+
+  web:
+    image: ghcr.io/aidencole98/hermes-agent-web-ui:v2026.4.8-upstream-r4@sha256:9f5c30219c6607f64b520fdc0d667a7c5d20003ce1b02ef663648a3f131028c3
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      HERMES_HOME: /opt/data
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${APP_DATA_DIR}/data/hermes:/opt/data
+
+volumes:
+  data:
