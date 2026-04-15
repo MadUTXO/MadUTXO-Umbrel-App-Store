@@ -22,7 +22,10 @@ support: https://github.com/anomalyco/opencode/issues
 submitter: MadUTXO
 submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
 dependencies: []
-gallery: []
+gallery:
+  - https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-opencode/gallery/1.png
+  - https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-opencode/gallery/2.png
+  - https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-opencode/gallery/3.png
 releaseNotes: ""
 path: ""
 defaultUsername: ""
