@@ -3,7 +3,7 @@ id: madutxo-opencode
 category: developer
 name: OpenCode
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-opencode/icon.png
-version: "v1.4.3"
+version: "v1.5.0"
 tagline: AI coding assistant in browser
 description: >-
   OpenCode is an AI-powered browser IDE combining editor, terminal, and AI code support.
