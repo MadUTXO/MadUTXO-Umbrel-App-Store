@@ -2,6 +2,7 @@ manifestVersion: 1
 id: madutxo-opencode
 category: ai
 name: OpenCode
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-opencode/icon.png
 version: "1.1.64"
 port: 4096
 tagline: The open source AI coding agent
