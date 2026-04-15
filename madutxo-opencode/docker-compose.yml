@@ -9,12 +9,19 @@ services:
       - server
 
   server:
-    image: ghcr.io/anomalyco/opencode:1.1.64@sha256:36c39c41c7906fc327e9c318437c17940036e8e9790e67b0ea7c3a41c8168cae
-    command: ["web", "--hostname", "0.0.0.0", "--port", "4096"]
-    restart: unless-stopped
+    image: ghcr.io/anomalyco/opencode:latest@sha256:0e5a369b6747dd322001e3719564988db3cbcb0482bea468ff8091895c90d810
+    user: "1000:1000"
     init: true
+    restart: unless-stopped
     stop_grace_period: 1m
+    command: ["web", "--hostname", "0.0.0.0", "--port", "4096"]
     environment:
       HOME: /home/opencode
+      TZ: ${TZ:-UTC}
+      BUN_CONFIG_HOME: /home/opencode/.bun
+      BUN_INSTALL_CACHE_DIR: /home/opencode/.bun-cache
     volumes:
-      - ${APP_DATA_DIR}/data:/home/opencode
+      - ${APP_DATA_DIR}/data:/home/opencode:rw
+
+volumes:
+  data:
