@@ -18,6 +18,7 @@ services:
     environment:
       HOME: /home/opencode
       TZ: ${TZ:-UTC}
+      OPENCODE_SERVER_PASSWORD: ${APP_PASSWORD}
       BUN_CONFIG_HOME: /home/opencode/.bun
       BUN_INSTALL_CACHE_DIR: /home/opencode/.bun-cache
     volumes:
