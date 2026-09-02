@@ -24,30 +24,17 @@ description: >-
   shows Running and a block height before connecting a wallet.
 
 
-  - How to Use it with SideSwap -
+  - How to use it with SideSwap -
 
   SideSwap can use your node for balances, PEG-IN/OUT and L-BTC to L-USDT swaps.
 
-  First, open this app in Umbrel and note the address shown at the top.
-  For home Wi-Fi use [umbrel-sedrver-ip-address]:60601.
-  For mobile data use the Tor address ending in .onion:60601.
+  1. Open this app in Umbrel and note the address shown (local or Tor)
 
-  In SideSwap, open Settings, then Network, then Personal (Custom server).
-  Set Network to Liquid, Host to your address without the port, Port to 60601
-  and TLS to off. Save and restart SideSwap.
+  2. In SideSwap open Settings > Network access > Personal Electrum Server. Set Host to your Liquid-electrs address without the port, then set Port to 60601 (TLS off). Save and restart SideSwap.
 
-  At home, same Wi-Fi as Umbrel, use Host umbrel.local, Port 60601, TLS off
-  and Proxy off.
-
-  Away from home on Android, you need Orbot to reach the onion address.
-  Install Orbot from Zapstore or Obtainium and turn on VPN mode.
-  Orbot runs a proxy at 127.0.0.1:9050.
-  In SideSwap, open Settings, Proxy, turn on, Host 127.0.0.1, Port 9050.
-  Then in Settings, Network, Personal set Host to your onion address,
-  Port 60601, TLS off and Network Liquid. Keep Orbot running.
-
-  If SideSwap says Connecting, wait until Electrs shows Running. Try Local
-  at home first. Use Tor and Orbot only when you are away.
+  3. Away from home on Android, you need Orbot to reach the onion address. Install Orbot from Zapstore or Obtainium and turn on VPN mode (Orbot runs a proxy at 127.0.0.1:9050). In SideSwap open Settings > Network access > Proxy. Toggle Use proxy ON, Host 127.0.0.1, Port 9050.
+  
+  
 releaseNotes: >-
   Stable Elements RPC and indexing.
 
