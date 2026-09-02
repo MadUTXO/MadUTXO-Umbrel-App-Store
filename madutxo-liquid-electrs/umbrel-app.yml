@@ -20,7 +20,7 @@ description: >-
   of your Liquid activity.
 
 
-  NOTE:Requires the Elements Core app to be installed and synced. Wait until Electrs
+  NOTE - Requires the Elements Core app to be installed and synced. Wait until Electrs
   shows Running and a block height before connecting a wallet.
 
 
