@@ -1,0 +1,76 @@
+manifestVersion: 1
+id: madutxo-liquid-electrs
+category: bitcoin
+name: Electrs Liquid
+version: "0.7.19"
+tagline: Personal Electrum server for the Liquid Network
+description: >-
+  Run your personal Electrum server for the Liquid Network and connect your
+  wallet to it instead of relying on Blockstream's public servers.
+
+
+  Without your own server, your wallet queries Blockstream's infrastructure
+  to check balances and transactions — leaking which addresses are yours.
+  Even though Liquid uses Confidential Transactions (hidden amounts and assets),
+  the transaction graph is still visible. Input ownership heuristics still apply,
+  and swaps used to enter/exit Liquid can correlate amounts, origin, and destination.
+
+
+  With Electrs Liquid, all wallet queries stay local. Nobody can build a profile
+  of your Liquid activity.
+
+
+  NOTE:Requires the Elements Core app to be installed and synced. Wait until Electrs
+  shows Running and a block height before connecting a wallet.
+
+
+  - How to Use it with SideSwap -
+
+  SideSwap can use your node for balances, PEG-IN/OUT and L-BTC to L-USDT swaps.
+
+  First, open this app in Umbrel and note the address shown at the top.
+  For home Wi-Fi use [umbrel-sedrver-ip-address]:60601.
+  For mobile data use the Tor address ending in .onion:60601.
+
+  In SideSwap, open Settings, then Network, then Personal (Custom server).
+  Set Network to Liquid, Host to your address without the port, Port to 60601
+  and TLS to off. Save and restart SideSwap.
+
+  At home, same Wi-Fi as Umbrel, use Host umbrel.local, Port 60601, TLS off
+  and Proxy off.
+
+  Away from home on Android, you need Orbot to reach the onion address.
+  Install Orbot from Zapstore or Obtainium and turn on VPN mode.
+  Orbot runs a proxy at 127.0.0.1:9050.
+  In SideSwap, open Settings, Proxy, turn on, Host 127.0.0.1, Port 9050.
+  Then in Settings, Network, Personal set Host to your onion address,
+  Port 60601, TLS off and Network Liquid. Keep Orbot running.
+
+  If SideSwap says Connecting, wait until Electrs shows Running. Try Local
+  at home first. Use Tor and Orbot only when you are away.
+releaseNotes: >-
+  Stable Elements RPC and indexing.
+
+
+  - Use Umbrel's derive_entropy for Elements RPC password instead of fragile docker-inspect.
+
+  - Reduce daemon_parallelism 4→2 and increase db-block-cache 2→32 MiB to lower Elements RPC load.
+
+  - Remove incorrect cross-mount and tune stop grace period / DAEMON timeouts for stable Liquid sync.
+
+
+  Maintained by MadUTXO.
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
+developer: MadUTXO
+website: https://github.com/MadUTXO
+dependencies:
+  - elements
+repo: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+support: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/issues
+port: 3062
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: ""
