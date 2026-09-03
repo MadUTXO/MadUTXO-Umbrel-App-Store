@@ -278,8 +278,9 @@ var PORT = '60601';
 var currentNetwork = 'local';
 var localAddr = window.location.hostname || window.location.host.split(':')[0] || 'umbrel.local';
 if (!localAddr || localAddr === 'localhost') localAddr = 'umbrel.local';
-var torAddr = '';
-// Fetch live hostname (web mounts ${TOR_DATA_DIR}/app-madutxo-liquid-electrs:/tor:ro, nginx /tor-address, no envsubst interpolation — SEC-005 fix)
+var torAddr = '${ELECTRS_TOR_ADDRESS}';
+torAddr = torAddr.replace(/[^a-zA-Z0-9.-]/g, '').substring(0, 62);
+// Fetch live hostname (defense-in-depth) + fetch fallback (web mounts ${TOR_DATA_DIR}/app-madutxo-liquid-electrs:/tor:ro, nginx /tor-address, no envsubst interpolation — SEC-005 fix)
 function fetchTorAddress() {
   fetch('/tor-address', {cache: 'no-store'}).then(function(r){
     if (!r.ok) return;

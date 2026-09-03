@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.32"
+version: "0.7.33"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,9 +36,9 @@ description: >-
   
   
 releaseNotes: >-
-  Fix web Loading... (localAddr empty).
+  Fix web Tor Loading... (fetch via app_proxy blocked).
 
-  localAddr window.location.hostname || host.split(':')[0] || umbrel.local (was hostname only, empty via app_proxy). Tor fetch retained.
+  Revert web to baked ELECTRS_TOR_ADDRESS via envsubst (4rkad style) + keep fetch fallback and sanitize. Docker web envsubst now includes TOR_ADDRESS again. 0.7.32 localAddr fallback retained.
 
 
   Maintained by MadUTXO.
