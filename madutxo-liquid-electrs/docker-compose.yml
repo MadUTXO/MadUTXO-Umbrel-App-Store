@@ -37,10 +37,13 @@ services:
       - "${APP_DATA_DIR}/data/electrs:/data"
     environment:
       ELEMENTS_RPC_PASSWORD: "${APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS}"
-      # Increase daemon timeouts to tolerate Elements IBD load (default 10s/600s) and reduce reconnect spam
-      DAEMON_CONNECTION_TIMEOUT: "15"
-      DAEMON_READ_TIMEOUT: "600"
-      DAEMON_WRITE_TIMEOUT: "600"
+      # Eliminate idle-disconnect WARN (daemon.rs:380): Elements closes idle RPC ~30s, electrs single
+      # Mutex<Connection> hits EOF on next tip poll → "disconnected while receiving". Proactively
+      # recycle the persistent connection before idle-timeout via daemon_rpc_conn_max_age.
+      DAEMON_CONNECTION_TIMEOUT: "5"
+      DAEMON_READ_TIMEOUT: "60"
+      DAEMON_WRITE_TIMEOUT: "60"
+      DAEMON_CONN_RECYCLE_COOLDOWN: "10"
     command:
       - -vv
       - --network
@@ -59,6 +62,8 @@ services:
       - "64"
       - --daemon-parallelism
       - "2"
+      - --daemon-rpc-conn-max-age
+      - "45"
       - --jsonrpc-import
 
   tor:
@@ -71,7 +76,3 @@ services:
       HOME: "/tmp"
     entrypoint: ["/bin/sh", "-c"]
     command: ["mkdir -p /data/app-madutxo-liquid-electrs/main && chmod 700 /data/app-madutxo-liquid-electrs/main && printf 'HiddenServiceDir /data/app-madutxo-liquid-electrs/main\\nHiddenServicePort 60601 madutxo-liquid-electrs_electrs_1:60601\\n' > /tmp/torrc && exec tor -f /tmp/torrc"]
-
-
-
-

@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.19"
+version: "0.7.20"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,14 +36,14 @@ description: >-
   
   
 releaseNotes: >-
-  Stable Elements RPC and indexing.
+  Fix idle-disconnect WARN spam at live tip.
 
 
-  - Use Umbrel's derive_entropy for Elements RPC password instead of fragile docker-inspect.
+  - Proactively recycle daemon RPC connection via --daemon-rpc-conn-max-age 45 before Elements idle-timeout closes it (was "disconnected from daemon while receiving" every 1-2 blocks).
 
-  - Reduce daemon_parallelism 4→2 and increase db-block-cache 2→32 MiB to lower Elements RPC load.
+  - Tune DAEMON timeouts to 5s/60s/60s and recycle cooldown 10s for fast, non-spamming reconnect.
 
-  - Remove incorrect cross-mount and tune stop grace period / DAEMON timeouts for stable Liquid sync.
+  - Previous 0.7.19: derive_entropy password, parallelism 2, cache 32 MiB, grace 60s.
 
 
   Maintained by MadUTXO.
