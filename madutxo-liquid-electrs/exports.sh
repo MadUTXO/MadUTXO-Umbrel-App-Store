@@ -12,14 +12,6 @@ if [ -z "$elements_rpc_pass" ] && [ -f "$pass_file" ]; then
   elements_rpc_pass="$(cat "$pass_file" 2>/dev/null || true)"
 fi
 
-# Last resort: docker inspect (keep for compatibility, guard with || true for set -e)
-if [ -z "$elements_rpc_pass" ]; then
-  elements_container="$(docker ps --filter name=elements --format '{{.Names}}' 2>/dev/null | grep -E 'elements.node' | head -1 || true)"
-  if [ -n "$elements_container" ]; then
-    elements_rpc_pass="$(docker inspect "$elements_container" --format '{{range .Config.Cmd}}{{.}} {{end}}' 2>/dev/null | grep -o 'rpcpassword=[^ ]*' | cut -d= -f2 | head -1 || true)"
-  fi
-fi
-
 # Persist for entrypoint fallback (atomic, 600)
 if [ -n "$elements_rpc_pass" ]; then
   (umask 077; tmpf="$(mktemp "${pass_file}.tmp.XXXXXX" 2>/dev/null)" && printf '%s' "$elements_rpc_pass" > "$tmpf" && chmod 600 "$tmpf" && mv -f "$tmpf" "$pass_file") 2>/dev/null || (echo "$elements_rpc_pass" > "$pass_file" && chmod 600 "$pass_file") 2>/dev/null || true
