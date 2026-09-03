@@ -276,7 +276,8 @@ var QRCode=function(){function a(a){this.mode=4;this.data=a}function b(a,b){this
 
 var PORT = '60601';
 var currentNetwork = 'local';
-var localAddr = window.location.hostname;
+var localAddr = window.location.hostname || window.location.host.split(':')[0] || 'umbrel.local';
+if (!localAddr || localAddr === 'localhost') localAddr = 'umbrel.local';
 var torAddr = '';
 // Fetch live hostname (web mounts ${TOR_DATA_DIR}/app-madutxo-liquid-electrs:/tor:ro, nginx /tor-address, no envsubst interpolation — SEC-005 fix)
 function fetchTorAddress() {
