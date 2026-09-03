@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.20"
+version: "0.7.21"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,14 +36,14 @@ description: >-
   
   
 releaseNotes: >-
-  Fix idle-disconnect WARN spam at live tip.
+  Fix idle-disconnect WARN and web UI.
 
 
-  - Proactively recycle daemon RPC connection via --daemon-rpc-conn-max-age 45 before Elements idle-timeout closes it (was "disconnected from daemon while receiving" every 1-2 blocks).
+  - Daemon: proactively recycle RPC via --daemon-rpc-conn-max-age 45 before Elements idle-timeout (was "disconnected while receiving" every 1-2 blocks at tip); tune DAEMON 5s/60s/60s cooldown 10s.
 
-  - Tune DAEMON timeouts to 5s/60s/60s and recycle cooldown 10s for fast, non-spamming reconnect.
+  - Web: fix Tor onion showing Loading forever (web started before tor hostname; now fetch /tor-address via ${TOR_DATA_DIR}:/tor:ro + nginx /tor-address + 5s poll) and copy button feedback (now shows Copied for 1.5s).
 
-  - Previous 0.7.19: derive_entropy password, parallelism 2, cache 32 MiB, grace 60s.
+  - Previous 0.7.20/0.7.19: derive_entropy password, parallelism 2, cache 32 MiB.
 
 
   Maintained by MadUTXO.

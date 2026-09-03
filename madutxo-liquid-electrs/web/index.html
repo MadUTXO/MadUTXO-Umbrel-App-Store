@@ -278,6 +278,22 @@ var PORT = '60601';
 var currentNetwork = 'local';
 var localAddr = window.location.hostname;
 var torAddr = '${ELECTRS_TOR_ADDRESS}';
+// Fallback: fetch live hostname (web mounts ${TOR_DATA_DIR}:/tor:ro and nginx serves /tor-address)
+function fetchTorAddress() {
+  fetch('/tor-address', {cache: 'no-store'}).then(function(r){
+    if (!r.ok) return;
+    return r.text();
+  }).then(function(t){
+    if (t) {
+      t = t.trim();
+      if (t.indexOf('.onion') !== -1 && t !== torAddr) {
+        torAddr = t;
+        if (currentNetwork === 'tor') updateDisplay();
+      }
+    }
+  }).catch(function(){});
+}
+if (torAddr.indexOf('.onion') !== -1) fetchTorAddress();
 
 function generateQR(text) {
   // Use error correction level H (30%) to allow logo overlay
@@ -316,25 +332,30 @@ function selectNetwork(network) {
   document.getElementById('btnLocal').className = network === 'local' ? 'active' : '';
   document.getElementById('btnTor').className = network === 'tor' ? 'active' : '';
   document.getElementById('togglePill').className = 'toggle-pill' + (network === 'tor' ? ' tor' : '');
+  if (network === 'tor' && torAddr.indexOf('.onion') === -1) fetchTorAddress();
   updateDisplay();
 }
 
 function copyField(id, btn) {
   var text = document.getElementById(id).textContent;
+  if (text === 'Loading...' || !text) return;
+  var origHTML = btn.innerHTML;
+  var done = function(){
+    btn.innerHTML = '<span style="font-size:0.875rem;font-weight:600;">Copied</span>';
+    btn.classList.add('copied');
+    setTimeout(function(){ btn.innerHTML = origHTML; btn.classList.remove('copied'); }, 1500);
+  };
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).then(done, function(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done();
+    });
   } else {
     var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
+    ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done();
   }
-  btn.classList.add('copied');
-  setTimeout(function() { btn.classList.remove('copied'); }, 1500);
 }
 
 function updateSyncStatus(height) {
@@ -343,9 +364,14 @@ function updateSyncStatus(height) {
   document.getElementById('syncText').textContent = 'Running';
 }
 
-// torAddr is injected by envsubst at container startup
-// Clean it in case envsubst didn't run (local dev)
+// Clean baked addr in case envsubst didn't run (local dev)
 if (torAddr.indexOf('.onion') === -1) torAddr = '';
+
+// Poll tor hostname until it appears (tor bootstraps after web starts, ~2min)
+var torPoll = setInterval(function(){
+  if (torAddr.indexOf('.onion') !== -1) { clearInterval(torPoll); return; }
+  fetchTorAddress();
+}, 5000);
 
 // Initialize display immediately
 updateDisplay();
