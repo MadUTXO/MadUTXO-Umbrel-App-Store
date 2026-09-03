@@ -31,6 +31,8 @@ services:
       - /tmp
       - /var/cache/nginx
       - /run
+      - /usr/share/nginx/html
+      - /etc/nginx/conf.d
     volumes:
       - ${APP_DATA_DIR}/web/index.html:/tmp/index.template.html:ro
       - ${APP_DATA_DIR}/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -58,6 +60,7 @@ services:
       - /tmp
       - /var/cache/nginx
       - /run
+      - /etc/nginx/conf.d
     expose:
       - "9130"
     command: ["sh", "-c", "printf 'map \\$$http_origin \\$$cors_origin { default \"\"; \"~^https?://(umbrel\\\\.local|.*\\\\.onion)(:\\\\d+)?$$\" \\$$http_origin; }\\nserver { listen 9130; location / { proxy_pass http://electrs:3000; proxy_set_header Host \\$$host; add_header Cache-Control no-cache; add_header Access-Control-Allow-Origin \\$$cors_origin always; add_header Access-Control-Allow-Methods \"GET, OPTIONS\" always; add_header Access-Control-Allow-Headers Content-Type always; if (\\$$request_method = OPTIONS) { return 204; } } }' > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
@@ -134,4 +137,4 @@ services:
     environment:
       HOME: "/tmp"
     entrypoint: ["/bin/sh", "-c"]
-    command: ["mkdir -p /data/app-madutxo-liquid-electrs/main && chmod 700 /data/app-madutxo-liquid-electrs/main && printf 'HiddenServiceDir /data/app-madutxo-liquid-electrs/main\\nHiddenServicePort 60601 electrs:60601\\n' > /tmp/torrc && exec tor -f /tmp/torrc"]
+    command: ["mkdir -p /data/app-madutxo-liquid-electrs/main && chmod 700 /data/app-madutxo-liquid-electrs/main && printf 'HiddenServiceDir /data/app-madutxo-liquid-electrs/main\\nHiddenServicePort 60601 madutxo-liquid-electrs_electrs_1:60601\\n' > /tmp/torrc && exec tor -f /tmp/torrc"]
