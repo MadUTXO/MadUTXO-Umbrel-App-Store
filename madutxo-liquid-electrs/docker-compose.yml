@@ -38,9 +38,8 @@ services:
       - "${APP_DATA_DIR}/data/electrs:/data"
     environment:
       ELEMENTS_RPC_PASSWORD: "${APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS}"
-      # Eliminate idle-disconnect WARN (daemon.rs:380): Elements closes idle RPC ~30s, electrs single
-      # Mutex<Connection> hits EOF on next tip poll → "disconnected while receiving". Proactively
-      # recycle the persistent connection before idle-timeout via daemon_rpc_conn_max_age.
+      # DAEMON_* timeouts tuned for live-tip polling; 0.6.0 image has no --daemon-rpc-conn-max-age flag
+      # (added post-0.6.0 in new-index). Keep env tuning only, WARN at tip remains transient but non-fatal.
       DAEMON_CONNECTION_TIMEOUT: "5"
       DAEMON_READ_TIMEOUT: "60"
       DAEMON_WRITE_TIMEOUT: "60"
@@ -63,8 +62,6 @@ services:
       - "64"
       - --daemon-parallelism
       - "2"
-      - --daemon-rpc-conn-max-age
-      - "45"
       - --jsonrpc-import
 
   tor:
