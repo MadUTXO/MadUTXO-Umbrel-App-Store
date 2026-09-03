@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.22"
+version: "0.7.25"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,14 +36,9 @@ description: >-
   
   
 releaseNotes: >-
-  Hotfix: 0.7.21 image 0.6.0 has no --daemon-rpc-conn-max-age flag (crash loop); remove it.
+  Security hardening and stability improvements.
 
-
-  - Keep DAEMON 5s/60s/60s tuning via env (WARN at tip remains transient but non-fatal; proper fix needs rebuilt image).
-
-  - Web fixes from 0.7.21 remain: Tor Loading via /tor-address + ${TOR_DATA_DIR}:/tor:ro + 5s poll and Copied feedback.
-
-  - 0.7.21/0.7.20: web Tor + copy, daemon recycle attempt, 0.7.19 derive_entropy + cache 32 MiB.
+  Update recommended.
 
 
   Maintained by MadUTXO.

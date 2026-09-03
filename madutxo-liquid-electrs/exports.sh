@@ -16,13 +16,13 @@ fi
 if [ -z "$elements_rpc_pass" ]; then
   elements_container="$(docker ps --filter name=elements --format '{{.Names}}' 2>/dev/null | grep -E 'elements.node' | head -1 || true)"
   if [ -n "$elements_container" ]; then
-    elements_rpc_pass="$(docker inspect "$elements_container" --format '{{range .Config.Cmd}}{{.}} {{end}}' 2>/dev/null | grep -oP '(?<=-rpcpassword=)\S+' | head -1 || true)"
+    elements_rpc_pass="$(docker inspect "$elements_container" --format '{{range .Config.Cmd}}{{.}} {{end}}' 2>/dev/null | grep -o 'rpcpassword=[^ ]*' | cut -d= -f2 | head -1 || true)"
   fi
 fi
 
-# Persist for entrypoint fallback
+# Persist for entrypoint fallback (atomic, 600)
 if [ -n "$elements_rpc_pass" ]; then
-  (echo "$elements_rpc_pass" > "$pass_file" && chmod 600 "$pass_file") 2>/dev/null || true
+  (umask 077; tmpf="$(mktemp "${pass_file}.tmp.XXXXXX" 2>/dev/null)" && printf '%s' "$elements_rpc_pass" > "$tmpf" && chmod 600 "$tmpf" && mv -f "$tmpf" "$pass_file") 2>/dev/null || (echo "$elements_rpc_pass" > "$pass_file" && chmod 600 "$pass_file") 2>/dev/null || true
 fi
 export APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS="${elements_rpc_pass:-}"
 

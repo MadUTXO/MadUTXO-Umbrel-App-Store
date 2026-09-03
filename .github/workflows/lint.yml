@@ -1,0 +1,27 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'madutxo-liquid-electrs/**'
+      - 'Dockerfile.electrs-liquid'
+      - 'scripts/lint.sh'
+      - '.github/workflows/lint.yml'
+  pull_request:
+    paths:
+      - 'madutxo-liquid-electrs/**'
+      - 'Dockerfile.electrs-liquid'
+      - 'scripts/lint.sh'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run security lint
+        run: bash scripts/lint.sh
+      - name: Validate compose
+        run: |
+          docker compose -f madutxo-liquid-electrs/docker-compose.yml config >/dev/null
+          echo "compose valid"

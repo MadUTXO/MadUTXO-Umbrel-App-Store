@@ -277,8 +277,8 @@ var QRCode=function(){function a(a){this.mode=4;this.data=a}function b(a,b){this
 var PORT = '60601';
 var currentNetwork = 'local';
 var localAddr = window.location.hostname;
-var torAddr = '${ELECTRS_TOR_ADDRESS}';
-// Fallback: fetch live hostname (web mounts ${TOR_DATA_DIR}:/tor:ro and nginx serves /tor-address)
+var torAddr = '';
+// Fetch live hostname (web mounts ${TOR_DATA_DIR}/app-madutxo-liquid-electrs:/tor:ro, nginx /tor-address, no envsubst interpolation — SEC-005 fix)
 function fetchTorAddress() {
   fetch('/tor-address', {cache: 'no-store'}).then(function(r){
     if (!r.ok) return;
@@ -293,7 +293,7 @@ function fetchTorAddress() {
     }
   }).catch(function(){});
 }
-if (torAddr.indexOf('.onion') !== -1) fetchTorAddress();
+fetchTorAddress();
 
 function generateQR(text) {
   // Use error correction level H (30%) to allow logo overlay

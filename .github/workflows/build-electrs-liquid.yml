@@ -1,0 +1,48 @@
+name: Build electrs-liquid
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'Dockerfile.electrs-liquid'
+      - 'compact-headers.patch'
+      - 'entrypoint.sh'
+      - '.github/workflows/build-electrs-liquid.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push 0.6.1
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.electrs-liquid
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/madutxo/electrs-liquid:0.6.1
+            ghcr.io/madutxo/electrs-liquid:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false

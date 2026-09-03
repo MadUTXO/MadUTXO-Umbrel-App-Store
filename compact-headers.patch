@@ -1,0 +1,568 @@
+diff --git a/src/daemon.rs b/src/daemon.rs
+index b4e3cfc..efad3b5 100644
+--- a/src/daemon.rs
++++ b/src/daemon.rs
+@@ -25,7 +25,7 @@ use electrs_macros::trace;
+ use crate::chain::{Block, BlockHash, BlockHeader, Network, Transaction, Txid};
+ use crate::metrics::{HistogramOpts, HistogramVec, Metrics};
+ use crate::signal::Waiter;
+-use crate::util::{HeaderList, DEFAULT_BLOCKHASH};
++use crate::util::{HeaderEntry, HeaderList, DEFAULT_BLOCKHASH};
+ 
+ use crate::errors::*;
+ 
+@@ -798,6 +798,46 @@ impl Daemon {
+         Ok(result)
+     }
+ 
++    /// Download all block headers and return compact entries (height, hash, time, prev_blockhash).
++    /// Full BlockHeaders are dropped after extracting compact data, keeping RAM usage low.
++    #[trace]
++    pub fn get_all_headers_compact(&self, tip: &BlockHash) -> Result<Vec<HeaderEntry>> {
++        let info: Value = self.request("getblockheader", json!([tip]))?;
++        let tip_height = info
++            .get("height")
++            .expect("missing height")
++            .as_u64()
++            .expect("non-numeric height") as usize;
++        let all_heights: Vec<usize> = (0..=tip_height).collect();
++        let chunk_size = 100_000;
++        let mut result: Vec<HeaderEntry> = Vec::with_capacity(tip_height + 1);
++        let mut expected_blockhash = *DEFAULT_BLOCKHASH;
++
++        for heights in all_heights.chunks(chunk_size) {
++            let headers = self.getblockheaders(&heights)?;
++            assert!(headers.len() == heights.len());
++
++            let base_height = result.len();
++            for (i, header) in headers.into_iter().enumerate() {
++                assert_eq!(header.prev_blockhash, expected_blockhash);
++                let hash = header.block_hash();
++                result.push(HeaderEntry::from_header(base_height + i, hash, &header));
++                expected_blockhash = hash;
++                // header is dropped here — no accumulation of full BlockHeaders
++            }
++
++            info!(
++                "downloaded {}/{} block headers ({:.0}%)",
++                result.len(),
++                tip_height,
++                result.len() as f32 / tip_height as f32 * 100.0
++            );
++        }
++
++        assert_eq!(expected_blockhash, *tip);
++        Ok(result)
++    }
++
+     // Returns a list of BlockHeaders in ascending height (i.e. the tip is last).
+     #[trace]
+     pub fn get_new_headers(
+diff --git a/src/electrum/server.rs b/src/electrum/server.rs
+index ea55796..6560a42 100644
+--- a/src/electrum/server.rs
++++ b/src/electrum/server.rs
+@@ -145,8 +145,11 @@ impl Connection {
+ 
+     fn blockchain_headers_subscribe(&mut self) -> Result<Value> {
+         let entry = self.query.chain().best_header();
+-        let hex_header = serialize_hex(entry.header());
+-        let result = json!({"hex": hex_header, "height": entry.height()});
++        let height = entry.height();
++        let full_header = self.query.chain().get_block_header_by_height(height)
++            .chain_err(|| "missing full header")?;
++        let hex_header = serialize_hex(&full_header);
++        let result = json!({"hex": hex_header, "height": height});
+         self.last_header_entry = Some(entry);
+         Ok(result)
+     }
+@@ -216,8 +219,8 @@ impl Connection {
+         let raw_header_hex: String = self
+             .query
+             .chain()
+-            .header_by_height(height)
+-            .map(|entry| serialize_hex(entry.header()))
++            .get_block_header_by_height(height)
++            .map(|header| serialize_hex(&header))
+             .chain_err(|| "missing header")?;
+ 
+         if cp_height == 0 {
+@@ -242,8 +245,8 @@ impl Connection {
+             .filter_map(|height| {
+                 self.query
+                     .chain()
+-                    .header_by_height(height)
+-                    .map(|entry| serialize_hex(entry.header()))
++                    .get_block_header_by_height(height)
++                    .map(|header| serialize_hex(&header))
+             })
+             .collect();
+ 
+@@ -502,8 +505,10 @@ impl Connection {
+             let entry = self.query.chain().best_header();
+             if *last_entry != entry {
+                 *last_entry = entry;
+-                let hex_header = serialize_hex(last_entry.header());
+-                let header = json!({"hex": hex_header, "height": last_entry.height()});
++                let height = last_entry.height();
++                let full_header = self.query.chain().get_block_header_by_height(height);
++                let hex_header = full_header.map(|h| serialize_hex(&h)).unwrap_or_default();
++                let header = json!({"hex": hex_header, "height": height});
+                 result.push(json!({
+                     "jsonrpc": "2.0",
+                     "method": "blockchain.headers.subscribe",
+diff --git a/src/new_index/schema.rs b/src/new_index/schema.rs
+index cccb8bb..92b97c7 100644
+--- a/src/new_index/schema.rs
++++ b/src/new_index/schema.rs
+@@ -78,26 +78,21 @@ impl Store {
+ 
+         let headers = if let Some(tip_hash) = txstore_db.get(b"t") {
+             let mut tip_hash = deserialize(&tip_hash).expect("invalid chain tip in `t`");
+-            let headers_map = load_blockheaders(&txstore_db);
++            let headers_map = load_blockheaders_compact(&txstore_db);
+ 
+             // Move the tip back until we reach a block that is indexed in the history db.
+-            // It is possible for the tip recorded under the db "t" key to be un-indexed if electrs
+-            // shuts down during reorg handling. Normally this wouldn't matter because the non-indexed
+-            // block would be stale, but it could matter if the chain later re-orged back to
+-            // include the previously stale block because more blocks were built on top of it.
+-            // Without this, the stale-then-not-stale block(s) would not get re-indexed correctly.
+             while !indexed_blockhashes.contains(&tip_hash) {
+                 tip_hash = headers_map
+                     .get(&tip_hash)
+                     .expect("invalid header chain")
+-                    .prev_blockhash;
++                    .0; // prev_blockhash
+             }
+             debug!(
+                 "{} headers were loaded, tip at {:?}",
+                 headers_map.len(),
+                 tip_hash
+             );
+-            HeaderList::new(headers_map, tip_hash)
++            HeaderList::from_compact_map(headers_map, tip_hash)
+         } else {
+             HeaderList::empty()
+         };
+@@ -284,6 +279,18 @@ impl Indexer {
+         tip: &BlockHash,
+     ) -> Result<(Vec<HeaderEntry>, Option<usize>)> {
+         let indexed_headers = self.store.indexed_headers.read().unwrap();
++
++        if indexed_headers.is_empty() {
++            // Initial sync: use compact download to avoid holding all full headers in RAM
++            info!("downloading all block headers (compact mode) up to {}", tip);
++            let new_headers = daemon.get_all_headers_compact(tip)?;
++            let reorged_since = None;
++            if let Some(last) = new_headers.last() {
++                info!("{:?} ({} left to index)", last, new_headers.len());
++            }
++            return Ok((new_headers, reorged_since));
++        }
++
+         let raw_new_headers = daemon.get_new_headers(&indexed_headers, tip)?;
+         let (new_headers, reorged_since) = indexed_headers.preprocess(raw_new_headers, tip);
+ 
+@@ -571,7 +578,8 @@ impl ChainQuery {
+             let blockhex = blockval.as_str().expect("valid block from bitcoind");
+             Some(Vec::from_hex(blockhex).expect("valid block from bitcoind"))
+         } else {
+-            let entry = self.header_by_hash(hash)?;
++            self.header_by_hash(hash)?; // verify hash is in our chain
++            let full_header = lookup_header_by_hash(&self.store.txstore_db, hash)?;
+             let meta = self.get_block_meta(hash)?;
+             let txids = self.get_block_txids(hash)?;
+             let txids_with_blockhash: Vec<_> =
+@@ -582,7 +590,7 @@ impl ChainQuery {
+             // as <raw header><tx count varint><raw txs>
+             let mut raw = Vec::with_capacity(meta.size as usize);
+ 
+-            raw.append(&mut serialize(entry.header()));
++            raw.append(&mut serialize(&full_header));
+             raw.append(&mut serialize(&VarInt(raw_txs.len() as u64)));
+ 
+             for mut raw_tx in raw_txs {
+@@ -595,7 +603,15 @@ impl ChainQuery {
+ 
+     pub fn get_block_header(&self, hash: &BlockHash) -> Option<BlockHeader> {
+         let _timer = self.start_timer("get_block_header");
+-        Some(self.header_by_hash(hash)?.header().clone())
++        // Verify the hash is in our chain, then load full header from DB
++        self.header_by_hash(hash)?;
++        lookup_header_by_hash(&self.store.txstore_db, hash)
++    }
++
++    /// Load full BlockHeader from the txstore DB (for API/Electrum responses)
++    pub fn get_block_header_by_height(&self, height: usize) -> Option<BlockHeader> {
++        let entry = self.store.indexed_headers.read().unwrap().header_by_height(height)?.clone();
++        lookup_header_by_hash(&self.store.txstore_db, entry.hash())
+     }
+ 
+     pub fn get_mtp(&self, height: usize) -> u32 {
+@@ -1136,11 +1152,12 @@ impl ChainQuery {
+     pub fn get_merkleblock_proof(&self, txid: &Txid) -> Option<MerkleBlock> {
+         let _timer = self.start_timer("get_merkleblock_proof");
+         let blockid = self.tx_confirming_block(txid)?;
+-        let headerentry = self.header_by_hash(&blockid.hash)?;
++        self.header_by_hash(&blockid.hash)?; // verify in chain
++        let full_header = lookup_header_by_hash(&self.store.txstore_db, &blockid.hash)?;
+         let block_txids = self.get_block_txids(&blockid.hash)?;
+ 
+         Some(MerkleBlock::from_header_txids_with_predicate(
+-            headerentry.header(),
++            &full_header,
+             &block_txids,
+             |t| t == txid,
+         ))
+@@ -1169,17 +1186,26 @@ fn load_blockhashes(db: &DB, prefix: &[u8]) -> HashSet<BlockHash> {
+         .collect()
+ }
+ 
+-fn load_blockheaders(db: &DB) -> HashMap<BlockHash, BlockHeader> {
++/// Load block headers from DB but only keep compact data (prev_blockhash, time).
++/// This avoids holding all full BlockHeaders (with dynafed data) in RAM.
++fn load_blockheaders_compact(db: &DB) -> HashMap<BlockHash, (BlockHash, u32)> {
+     db.iter_scan(&BlockRow::header_filter())
+         .map(BlockRow::from_row)
+         .map(|r| {
+             let key: BlockHash = deserialize(&r.key.hash).expect("failed to parse BlockHash");
+             let value: BlockHeader = deserialize(&r.value).expect("failed to parse BlockHeader");
+-            (key, value)
++            let compact = (value.prev_blockhash, value.time);
++            // full BlockHeader is dropped here
++            (key, compact)
+         })
+         .collect()
+ }
+ 
++fn lookup_header_by_hash(db: &DB, hash: &BlockHash) -> Option<BlockHeader> {
++    let key = [b"B", &hash[..]].concat();
++    db.get(&key).map(|v| deserialize(&v).expect("failed to parse BlockHeader"))
++}
++
+ fn add_blocks(block_entries: &[BlockEntry], iconfig: &IndexerConfig) -> Vec<DBRow> {
+     // persist individual transactions:
+     //      T{txid} → {rawtx}
+diff --git a/src/rest.rs b/src/rest.rs
+index 4cde8d8..0d83091 100644
+--- a/src/rest.rs
++++ b/src/rest.rs
+@@ -1,6 +1,6 @@
+ use crate::chain::{
+-    address, BlockHash, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxMerkleNode,
+-    TxOut, Txid,
++    address, BlockHash, BlockHeader, Network, OutPoint, Script, Sequence, Transaction, TxIn,
++    TxMerkleNode, TxOut, Txid,
+ };
+ use crate::config::Config;
+ use crate::errors;
+@@ -93,36 +93,38 @@ struct BlockValue {
+ 
+ impl BlockValue {
+     #[cfg_attr(feature = "liquid", allow(unused_variables))]
+-    fn new(blockhm: BlockHeaderMeta) -> Self {
+-        let header = blockhm.header_entry.header();
++    fn new(blockhm: BlockHeaderMeta, full_header: Option<&BlockHeader>) -> Self {
++        let entry = &blockhm.header_entry;
+         BlockValue {
+-            id: header.block_hash(),
+-            height: blockhm.header_entry.height() as u32,
++            id: *entry.hash(),
++            height: entry.height() as u32,
+             #[cfg(not(feature = "liquid"))]
+-            version: header.version.to_consensus() as u32,
++            version: full_header.map(|h| h.version.to_consensus() as u32).unwrap_or(0),
+             #[cfg(feature = "liquid")]
+-            version: header.version,
+-            timestamp: header.time,
++            version: full_header.map(|h| h.version).unwrap_or(0),
++            timestamp: entry.time(),
+             tx_count: blockhm.meta.tx_count,
+             size: blockhm.meta.size,
+             weight: blockhm.meta.weight as u64,
+-            merkle_root: header.merkle_root,
+-            previousblockhash: if header.prev_blockhash != *DEFAULT_BLOCKHASH {
+-                Some(header.prev_blockhash)
++            merkle_root: full_header.map(|h| h.merkle_root).unwrap_or_else(|| {
++                "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap()
++            }),
++            previousblockhash: if *entry.prev_blockhash() != *DEFAULT_BLOCKHASH {
++                Some(*entry.prev_blockhash())
+             } else {
+                 None
+             },
+             mediantime: blockhm.mtp,
+ 
+             #[cfg(not(feature = "liquid"))]
+-            bits: header.bits,
++            bits: full_header.map(|h| h.bits).unwrap_or_default(),
+             #[cfg(not(feature = "liquid"))]
+-            nonce: header.nonce,
++            nonce: full_header.map(|h| h.nonce).unwrap_or(0),
+             #[cfg(not(feature = "liquid"))]
+-            difficulty: header.difficulty_float(),
++            difficulty: full_header.map(|h| h.difficulty_float()).unwrap_or(0.0),
+ 
+             #[cfg(feature = "liquid")]
+-            ext: Some(header.ext.clone()),
++            ext: full_header.map(|h| h.ext.clone()),
+         }
+     }
+ }
+@@ -725,7 +727,8 @@ fn handle_request(
+                 .chain()
+                 .get_block_with_meta(&hash)
+                 .ok_or_else(|| HttpError::not_found("Block not found".to_string()))?;
+-            let block_value = BlockValue::new(blockhm);
++            let full_header = query.chain().get_block_header(&hash);
++            let block_value = BlockValue::new(blockhm, full_header.as_ref());
+             json_response(block_value, TTL_LONG)
+         }
+         (&Method::GET, Some(&"block"), Some(hash), Some(&"status"), None, None) => {
+@@ -1308,10 +1311,11 @@ fn blocks(query: &Query, start_height: Option<usize>) -> Result<Response<Full<By
+             .chain()
+             .get_block_with_meta(&current_hash)
+             .ok_or_else(|| HttpError::not_found("Block not found".to_string()))?;
+-        current_hash = blockhm.header_entry.header().prev_blockhash;
++        current_hash = *blockhm.header_entry.prev_blockhash();
+ 
++        // For block list view, skip loading full header (ext excluded anyway for liquid)
+         #[allow(unused_mut)]
+-        let mut value = BlockValue::new(blockhm);
++        let mut value = BlockValue::new(blockhm, None);
+ 
+         #[cfg(feature = "liquid")]
+         {
+diff --git a/src/util/block.rs b/src/util/block.rs
+index ca2da60..cbe8acb 100644
+--- a/src/util/block.rs
++++ b/src/util/block.rs
+@@ -32,7 +32,7 @@ impl From<&HeaderEntry> for BlockId {
+         BlockId {
+             height: header.height(),
+             hash: *header.hash(),
+-            time: header.header().time,
++            time: header.time(),
+         }
+     }
+ }
+@@ -41,34 +41,45 @@ impl From<&HeaderEntry> for BlockId {
+ pub struct HeaderEntry {
+     height: usize,
+     hash: BlockHash,
+-    header: BlockHeader,
++    time: u32,
++    prev_blockhash: BlockHash,
+ }
+ 
+ impl HeaderEntry {
+-    #[cfg(feature = "bench")]
+-    pub fn new(height: usize, hash: BlockHash, header: BlockHeader) -> Self {
++    pub fn from_header(height: usize, hash: BlockHash, header: &BlockHeader) -> Self {
+         Self {
+             height,
+             hash,
+-            header,
++            time: header.time,
++            prev_blockhash: header.prev_blockhash,
+         }
+     }
+-    pub fn hash(&self) -> &BlockHash {
+-        &self.hash
++
++    #[cfg(feature = "bench")]
++    pub fn new(height: usize, hash: BlockHash, header: BlockHeader) -> Self {
++        Self::from_header(height, hash, &header)
+     }
+ 
+-    pub fn header(&self) -> &BlockHeader {
+-        &self.header
++    pub fn hash(&self) -> &BlockHash {
++        &self.hash
+     }
+ 
+     pub fn height(&self) -> usize {
+         self.height
+     }
++
++    pub fn time(&self) -> u32 {
++        self.time
++    }
++
++    pub fn prev_blockhash(&self) -> &BlockHash {
++        &self.prev_blockhash
++    }
+ }
+ 
+ impl fmt::Debug for HeaderEntry {
+     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+-        let last_block_time = DateTime::from_unix_timestamp(self.header().time as i64).unwrap();
++        let last_block_time = DateTime::from_unix_timestamp(self.time() as i64).unwrap();
+         write!(
+             f,
+             "hash={} height={} @ {}",
+@@ -106,29 +117,82 @@ impl HeaderList {
+         );
+ 
+         let mut blockhash = tip_hash;
+-        let mut headers_chain: Vec<BlockHeader> = vec![];
++        let mut chain: Vec<(BlockHash, u32, BlockHash)> = vec![]; // (hash, time, prev_blockhash)
+ 
+         while blockhash != *DEFAULT_BLOCKHASH {
+             let header = headers_map.remove(&blockhash).unwrap_or_else(|| {
+                 panic!(
+                     "missing expected blockhash in headers map: {:?}, pointed from: {:?}",
+                     blockhash,
+-                    headers_chain.last().map(|h| h.block_hash())
++                    chain.last().map(|(h, _, _)| h)
+                 )
+             });
++            let hash = blockhash;
+             blockhash = header.prev_blockhash;
+-            headers_chain.push(header);
++            chain.push((hash, header.time, header.prev_blockhash));
+         }
+-        headers_chain.reverse();
++        chain.reverse();
++        // headers_map is mostly drained now, drop remaining orphans
++        drop(headers_map);
+ 
++        trace!("{} chained headers", chain.len());
++
++        let mut headers = HeaderList::empty();
++        let tip = tip_hash;
++        let entries: Vec<HeaderEntry> = chain
++            .into_iter()
++            .enumerate()
++            .map(|(height, (hash, time, prev_blockhash))| HeaderEntry {
++                height,
++                hash,
++                time,
++                prev_blockhash,
++            })
++            .collect();
++        headers.apply_new(entries, &tip);
++        headers
++    }
++
++    /// Build a HeaderList from compact data loaded from DB.
++    /// Each entry in the map is: hash → (prev_blockhash, time).
++    #[trace]
++    pub fn from_compact_map(
++        mut compact_map: HashMap<BlockHash, (BlockHash, u32)>,
++        tip_hash: BlockHash,
++    ) -> HeaderList {
+         trace!(
+-            "{} chained headers ({} orphan blocks left)",
+-            headers_chain.len(),
+-            headers_map.len()
++            "processing {} compact headers, tip at {:?}",
++            compact_map.len(),
++            tip_hash
+         );
+ 
++        let mut blockhash = tip_hash;
++        let mut chain: Vec<(BlockHash, u32, BlockHash)> = vec![]; // (hash, time, prev_blockhash)
++
++        while blockhash != *DEFAULT_BLOCKHASH {
++            let (prev_blockhash, time) = compact_map.remove(&blockhash).unwrap_or_else(|| {
++                panic!("missing expected blockhash in compact headers map: {:?}", blockhash)
++            });
++            chain.push((blockhash, time, prev_blockhash));
++            blockhash = prev_blockhash;
++        }
++        chain.reverse();
++        drop(compact_map);
++
++        trace!("{} chained compact headers", chain.len());
++
+         let mut headers = HeaderList::empty();
+-        headers.append(headers.preprocess(headers_chain, &tip_hash).0);
++        let entries: Vec<HeaderEntry> = chain
++            .into_iter()
++            .enumerate()
++            .map(|(height, (hash, time, prev_blockhash))| HeaderEntry {
++                height,
++                hash,
++                time,
++                prev_blockhash,
++            })
++            .collect();
++        headers.apply_new(entries, &tip_hash);
+         headers
+     }
+ 
+@@ -146,7 +210,7 @@ impl HeaderList {
+         // header[i] -> header[i-1] (i.e. header.last() is the tip)
+         let (new_height, header_entries) = if !new_headers.is_empty() {
+             let hashed_headers = new_headers
+-                .into_iter()
++                .iter()
+                 .map(|h| (h.block_hash(), h))
+                 .collect::<Vec<_>>();
+             for ((curr_blockhash, _), (_, next_header)) in hashed_headers.iter().tuple_windows() {
+@@ -165,11 +229,7 @@ impl HeaderList {
+             };
+             let header_entries = (new_height..)
+                 .zip(hashed_headers)
+-                .map(|(height, (hash, header))| HeaderEntry {
+-                    height,
+-                    hash,
+-                    header,
+-                })
++                .map(|(height, (hash, header))| HeaderEntry::from_header(height, hash, header))
+                 .collect();
+             (new_height, header_entries)
+         } else {
+@@ -209,7 +269,7 @@ impl HeaderList {
+         // new_headers[i] -> new_headers[i - 1] (i.e. new_headers.last() is the tip)
+         for (curr_header, next_header) in new_headers.iter().tuple_windows() {
+             assert_eq!(curr_header.height() + 1, next_header.height());
+-            assert_eq!(*curr_header.hash(), next_header.header().prev_blockhash);
++            assert_eq!(*curr_header.hash(), *next_header.prev_blockhash());
+         }
+         let new_height = match new_headers.first() {
+             Some(entry) => {
+@@ -219,7 +279,7 @@ impl HeaderList {
+                 } else {
+                     *DEFAULT_BLOCKHASH
+                 };
+-                assert_eq!(entry.header().prev_blockhash, expected_prev_blockhash);
++                assert_eq!(*entry.prev_blockhash(), expected_prev_blockhash);
+                 height
+             }
+             None => return,
+@@ -239,6 +299,17 @@ impl HeaderList {
+         }
+     }
+ 
++    /// Apply pre-built entries directly (used by HeaderList::new to avoid re-validation)
++    fn apply_new(&mut self, entries: Vec<HeaderEntry>, tip: &BlockHash) {
++        for entry in entries {
++            let height = entry.height();
++            assert_eq!(height, self.headers.len());
++            self.heights.insert(*entry.hash(), height);
++            self.headers.push(entry);
++        }
++        self.tip = *tip;
++    }
++
+     #[trace]
+     pub fn header_by_blockhash(&self, blockhash: &BlockHash) -> Option<&HeaderEntry> {
+         let height = self.heights.get(blockhash)?;
+@@ -294,12 +365,12 @@ impl HeaderList {
+         // Use the timestamp as the mtp of the genesis block.
+         // Matches bitcoind's behaviour: bitcoin-cli getblock `bitcoin-cli getblockhash 0` | jq '.time == .mediantime'
+         if height == 0 {
+-            self.headers.get(0).unwrap().header.time
++            self.headers.get(0).unwrap().time()
+         } else if height > self.best_height() {
+             0
+         } else {
+             let mut timestamps = (height.saturating_sub(MTP_SPAN - 1)..=height)
+-                .map(|p_height| self.headers.get(p_height).unwrap().header.time)
++                .map(|p_height| self.headers.get(p_height).unwrap().time())
+                 .collect::<Vec<_>>();
+             timestamps.sort_unstable();
+             timestamps[timestamps.len() / 2]
