@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.28"
+version: "0.7.29"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,9 +36,9 @@ description: >-
   
   
 releaseNotes: >-
-  Hotfix: web read-only broke 0.7.27.
+  Hotfix: api_cors nginx invalid variable.
 
-  Fix web/api_cors read_only false (was true, sh can't create index.html) and app_proxy web -> madutxo-liquid-electrs_web_1 for Umbrel DNS. Electrs 0.6.1 45s and Tor fix retained. Bump to 0.7.28 to force Umbrel update.
+  Fix api_cors map \$$http_origin -> $$http_origin (was \$$, nginx emerg invalid variable name "\$cors_origin"). 0.7.28 read_only + tor fix retained.
 
 
   Maintained by MadUTXO.

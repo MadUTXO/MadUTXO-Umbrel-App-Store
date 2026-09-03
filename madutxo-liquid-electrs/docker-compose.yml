@@ -52,7 +52,7 @@ services:
     read_only: false
     expose:
       - "9130"
-    command: ["sh", "-c", "printf 'map \\$$http_origin \\$$cors_origin { default \"\"; \"~^https?://(umbrel\\\\.local|.*\\\\.onion)(:\\\\d+)?$$\" \\$$http_origin; }\\nserver { listen 9130; location / { proxy_pass http://electrs:3000; proxy_set_header Host \\$$host; add_header Cache-Control no-cache; add_header Access-Control-Allow-Origin \\$$cors_origin always; add_header Access-Control-Allow-Methods \"GET, OPTIONS\" always; add_header Access-Control-Allow-Headers Content-Type always; if (\\$$request_method = OPTIONS) { return 204; } } }' > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+    command: ["sh", "-c", "printf 'map $$http_origin $$cors_origin { default \"\"; \"~^https?://(umbrel\.local|.*\.onion)(:\d+)?$$\" $$http_origin; }\nserver { listen 9130; location / { proxy_pass http://electrs:3000; proxy_set_header Host $$host; add_header Cache-Control no-cache; add_header Access-Control-Allow-Origin $$cors_origin always; add_header Access-Control-Allow-Methods \"GET, OPTIONS\" always; add_header Access-Control-Allow-Headers Content-Type always; if ($$request_method = OPTIONS) { return 204; } } }' > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
 
   electrs:
     image: ghcr.io/madutxo/electrs-liquid:0.6.1@sha256:337460bfd27ace531f12d7af1f939a43bfbaa40160d3a5310157266960a25eeb
