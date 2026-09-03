@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.30"
+version: "0.7.31"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,9 +36,9 @@ description: >-
   
   
 releaseNotes: >-
-  Hotfix: api_cors YAML escape broke 0.7.29.
+  Hotfix: api_cors YAML escape broke 0.7.30.
 
-  Fix api_cors map :\d+ -> :[0-9]+ (was go-yaml unknown escape at L55). 0.7.29 map fix retained.
+  Fix api_cors map \. -> . (was \. unknown escape, go-yaml). 0.7.30 [0-9] retained.
 
 
   Maintained by MadUTXO.
