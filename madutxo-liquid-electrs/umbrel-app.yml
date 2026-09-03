@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.26"
+version: "0.7.27"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,11 +36,9 @@ description: >-
   
   
 releaseNotes: >-
-  Hotfix: 0.7.25 read-only broke web/api_cors + tor HiddenServicePort.
+  Hotfix: web read-only broke 0.7.25.
 
-  Fix web/api_cors tmpfs for /usr/share/nginx/html and /etc/nginx/conf.d (was Read-only file system) and tor HiddenServicePort madutxo-liquid-electrs_electrs_1:60601 (was electrs:60601 unresolvable for system tor).
-
-  Update recommended.
+  Fix web/api_cors read_only false (was true, sh can't create index.html) and app_proxy web -> madutxo-liquid-electrs_web_1 for Umbrel DNS. Electrs 0.6.1 45s and Tor fix retained.
 
 
   Maintained by MadUTXO.
