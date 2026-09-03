@@ -17,10 +17,19 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
       - name: Run security lint
         run: bash scripts/lint.sh
+      - name: Verify digest pin
+        run: bash scripts/verify-digest.sh
       - name: Validate compose
         run: |
           docker compose -f madutxo-liquid-electrs/docker-compose.yml config >/dev/null
