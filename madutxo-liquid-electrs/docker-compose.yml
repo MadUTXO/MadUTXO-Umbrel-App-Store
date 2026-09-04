@@ -37,6 +37,9 @@ services:
       ELECTRS_TOR_ADDRESS: "${APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE}"
       ELECTRS_LIQUID_VERSION: "${APP_VERSION}"
     command: ["sh", "-c", "envsubst '$$ELECTRS_TOR_ADDRESS $$ELECTRS_LIQUID_VERSION' < /tmp/index.template.html > /usr/share/nginx/html/index.html && exec nginx -g 'daemon off;'"]
+    depends_on:
+      electrs:
+        condition: service_healthy
 
   api_cors:
     image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
@@ -57,6 +60,7 @@ services:
 
   electrs:
     image: ghcr.io/madutxo/electrs-liquid:0.6.1@sha256:337460bfd27ace531f12d7af1f939a43bfbaa40160d3a5310157266960a25eeb
+    user: "0:0"
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -75,6 +79,12 @@ services:
     expose:
       - "3000"
     stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c \"cat < /dev/null > /dev/tcp/127.0.0.1/3000\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
     volumes:
       - "${APP_DATA_DIR}/data/electrs:/data"
     environment:
