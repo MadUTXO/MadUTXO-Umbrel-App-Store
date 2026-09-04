@@ -5,9 +5,8 @@ on:
   push:
     branches: [master]
     paths:
-      - 'Dockerfile.electrs-liquid'
-      - 'compact-headers.patch'
-      - 'entrypoint.sh'
+      - 'madutxo-liquid-electrs/Dockerfile'
+      - 'madutxo-liquid-electrs/entrypoint.sh'
       - '.github/workflows/build-electrs-liquid.yml'
 
 jobs:
@@ -36,8 +35,8 @@ jobs:
       - name: Build and push 0.6.1
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
-          context: .
-          file: ./Dockerfile.electrs-liquid
+          context: ./madutxo-liquid-electrs
+          file: ./madutxo-liquid-electrs/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |

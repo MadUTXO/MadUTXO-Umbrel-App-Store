@@ -2,7 +2,7 @@
 set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE="$ROOT/madutxo-liquid-electrs/docker-compose.yml"
-DOCKERFILE="$ROOT/Dockerfile.electrs-liquid"
+DOCKERFILE="$ROOT/madutxo-liquid-electrs/Dockerfile"
 APP_YML="$ROOT/madutxo-liquid-electrs/umbrel-app.yml"
 
 echo "Verifying digest pin for madutxo-liquid-electrs..."
