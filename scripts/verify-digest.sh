@@ -38,4 +38,15 @@ echo "Image tag: $IMAGE_TAG"
 if echo "$IMAGE" | grep -q ":latest"; then echo "FAIL: Image uses latest tag"; exit 1; fi
 echo "✓ Image not latest"
 
+echo "--- LibreTranslate digest ---"
+LIBRE_COMPOSE="$ROOT/madutxo-libretranslate/docker-compose.yml"
+LIBRE_IMAGE=$(grep -E "image: libretranslate" "$LIBRE_COMPOSE" | head -n1 | awk '{print $2}' | tr -d '"')
+echo "LibreTranslate image: $LIBRE_IMAGE"
+case "$LIBRE_IMAGE" in
+  *@sha256:* ) echo "✓ LibreTranslate pinned" ;;
+  *) echo "FAIL: LibreTranslate not pinned"; exit 1 ;;
+esac
+if echo "$LIBRE_IMAGE" | grep -q ":latest"; then echo "FAIL: LibreTranslate latest"; exit 1; fi
+echo "✓ LibreTranslate not latest"
+
 echo "All digest checks passed"

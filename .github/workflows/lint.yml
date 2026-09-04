@@ -5,12 +5,14 @@ on:
     branches: [master]
     paths:
       - 'madutxo-liquid-electrs/**'
+      - 'madutxo-libretranslate/**'
       - 'Dockerfile.electrs-liquid'
       - 'scripts/lint.sh'
       - '.github/workflows/lint.yml'
   pull_request:
     paths:
       - 'madutxo-liquid-electrs/**'
+      - 'madutxo-libretranslate/**'
       - 'Dockerfile.electrs-liquid'
       - 'scripts/lint.sh'
 
@@ -34,4 +36,7 @@ jobs:
         run: |
           yq eval 'del(.services.app_proxy)' madutxo-liquid-electrs/docker-compose.yml > /tmp/compose.test.yml
           APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp APP_VERSION=0.7.38 APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE=dummy.onion APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS=dummy docker compose -f /tmp/compose.test.yml config >/dev/null
-          echo "compose valid"
+          echo "electrs compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-libretranslate/docker-compose.yml > /tmp/compose.libre.yml
+          APP_DATA_DIR=/tmp docker compose -f /tmp/compose.libre.yml config >/dev/null
+          echo "libretranslate compose valid"

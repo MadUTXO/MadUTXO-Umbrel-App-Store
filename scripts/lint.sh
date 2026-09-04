@@ -61,6 +61,31 @@ echo "✓ CSP present"
 # Check for Tor hostname endpoint
 if ! grep -q "location = /tor-address" "$NGINX"; then echo "FAIL: /tor-address not found"; exit 1; fi
 echo "✓ Tor endpoint present"
+echo "--- LibreTranslate checks ---"
+LIBRE_COMPOSE="$ROOT/madutxo-libretranslate/docker-compose.yml"
+echo "Lint: checking $LIBRE_COMPOSE..."
+if command -v yq >/dev/null 2>&1; then
+  if yq eval '.services[].image | select(test("@sha256:")|not)' "$LIBRE_COMPOSE" | grep -v "null" | grep -q .; then
+    echo "FAIL: LibreTranslate unpinned image"
+    yq eval '.services[].image' "$LIBRE_COMPOSE"
+    exit 1
+  fi
+  echo "✓ LibreTranslate images pinned (yq)"
+  for svc in main app_proxy; do
+    if ! yq eval ".services.$svc.security_opt[] | select(. == \"no-new-privileges:true\")" "$LIBRE_COMPOSE" | grep -q "no-new-privileges"; then
+      echo "FAIL: LibreTranslate $svc missing no-new-privileges"
+      exit 1
+    fi
+  done
+  echo "✓ LibreTranslate no-new-privileges present"
+else
+  if grep -E "image:.*:[^ ]+" "$LIBRE_COMPOSE" | grep -v "@sha256:" | grep -v "^#"; then echo "FAIL: LibreTranslate unpinned"; exit 1; fi
+  echo "✓ LibreTranslate images pinned"
+fi
+if grep -q "privileged: true" "$LIBRE_COMPOSE"; then echo "FAIL: LibreTranslate privileged"; exit 1; fi
+echo "✓ LibreTranslate No privileged"
+if yq eval '.services.main.read_only' "$LIBRE_COMPOSE" | grep -q "true"; then echo "✓ LibreTranslate read_only"; else echo "FAIL: LibreTranslate main missing read_only:true"; exit 1; fi
+
 echo "All lint checks passed"
 # Historical regression tests (informational, not failing)
 echo "--- Historical checks (should fail on old configs) ---"
