@@ -38,9 +38,6 @@ description: >-
 releaseNotes: >-
   Fix web Tor Loading... (fetch via app_proxy blocked).
 
-  Revert web to baked ELECTRS_TOR_ADDRESS via envsubst (4rkad style) + keep fetch fallback and sanitize. Docker web envsubst now includes TOR_ADDRESS again. 0.7.32 localAddr fallback retained.
-
-
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
 developer: MadUTXO
