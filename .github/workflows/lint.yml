@@ -32,5 +32,5 @@ jobs:
         run: bash scripts/verify-digest.sh
       - name: Validate compose
         run: |
-          docker compose -f madutxo-liquid-electrs/docker-compose.yml config >/dev/null
+          APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp APP_VERSION=0.7.37 APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE=dummy.onion APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS=dummy docker compose -f madutxo-liquid-electrs/docker-compose.yml config >/dev/null
           echo "compose valid"
