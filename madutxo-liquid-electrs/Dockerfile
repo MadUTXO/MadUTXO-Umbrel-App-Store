@@ -28,7 +28,7 @@ LABEL org.opencontainers.image.title="electrs-liquid" \
       org.opencontainers.image.description="Electrum server for Liquid Network — Umbrel community app" \
       org.opencontainers.image.source="https://github.com/Blockstream/electrs" \
       org.opencontainers.image.revision="46151268c4da6ec52d38c234b4687181c74b82d3" \
-      org.opencontainers.image.version="0.6.1"
+      org.opencontainers.image.version="0.6.2"
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libsnappy1v5=1.1.9* \
