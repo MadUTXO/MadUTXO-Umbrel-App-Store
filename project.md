@@ -45,6 +45,14 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `ma
 - `PAT classic` `repo + workflow + write:packages` for `GHCR_PAT` + `git push`. `shred -u /tmp/gh_token.txt` after use. `secret scanning` revokes `~1m` → rotate.
 - Never paste `ghp_` in `logs`/`commit` messages. Use `Nostr-mail` encrypted or `oauth2:token@github.com` transient `remote set-url`.
 
+## Standing Rules (never need reminding — always apply)
+
+- **Pre-validate builds before pushing:** never push anything that triggers `build-electrs-liquid.yml` without first proving login will pass — check token scopes (`repo, workflow, write:packages`) via `x-oauth-scopes` AND fetch a GHCR bearer token for the target repo. A failed build must never be discovered by CI.
+- **Actions stay green-only:** if any run fails, `DELETE /repos/.../actions/runs/{id}` immediately after green. No failure traces kept, ever.
+- **Release notes always match the release:** every version bump lists every user-facing change in that version (tor, memory, proxy, startup — all of them). Never ship a version with stale notes.
+- **Traceability over shortcuts:** fixes go through reviewed source → artifact → digest. No runtime-only overrides that make running code differ from the pinned digest. A false shortcut is worse than a slow rebuild.
+- **No release push before test-env confirm:** new app versions stay unpushed until confirmed running in the Umbrel test environment.
+
 ## Agent Workflow (How I Like Projects Done)
 1. **READ-ANALYZE-PROPOSE-WAIT FOR YES-IMPLEMENT-TEST-REVIEW DIFF-COMMIT YES-PUSH YES** — never `edit`/`push` without `YES`.
 2. **Read-only first:** `AGENTS.md` is `READ-ONLY` default. `WebFetch` `docs` + `rg` + `read` before `propose`.
