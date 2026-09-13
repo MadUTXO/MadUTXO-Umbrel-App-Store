@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.42"
+version: "0.7.43"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -41,6 +41,8 @@ releaseNotes: >-
   Memory tuning for Umbrel servers: bound RocksDB index and filter blocks in cache, smaller write buffers, single-threaded sync, 3GB container limit so indexing cannot freeze the host.
 
   Proxy fix: web and api now use the full container name so Umbrel cannot route to the wrong Electrs app on shared networks.
+
+  Startup fix: password backup write can no longer kill startup (fixes restart loop exit 2 on root-owned password file).
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg

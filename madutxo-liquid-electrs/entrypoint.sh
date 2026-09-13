@@ -18,10 +18,13 @@ if [ -z "$ELEMENTS_RPC_PASSWORD" ] && [ -f "$PASS_FILE" ] && [ -s "$PASS_FILE" ]
 fi
 
 if [ -n "$ELEMENTS_RPC_PASSWORD" ]; then
-    # Persist for future restarts (restricted permissions)
-    echo "$ELEMENTS_RPC_PASSWORD" > "$PASS_FILE"
-    chmod 600 "$PASS_FILE"
-    chown electrs:electrs "$PASS_FILE"
+    # Persist for future restarts (restricted permissions).
+    # Must never be fatal: the password is already in env and electrs
+    # starts fine without the backup file (fixes restart loop exit 2
+    # when the file is root-owned 600 from a previous install).
+    echo "$ELEMENTS_RPC_PASSWORD" > "$PASS_FILE" 2>/dev/null || echo "[entrypoint] WARNING: cannot persist password, continuing with env"
+    chmod 600 "$PASS_FILE" 2>/dev/null || true
+    chown electrs:electrs "$PASS_FILE" 2>/dev/null || true
     # Append --cookie (clap uses last value, overrides any empty one from compose)
     exec gosu electrs electrs "$@" --cookie "elements:${ELEMENTS_RPC_PASSWORD}"
 fi
