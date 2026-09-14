@@ -58,7 +58,7 @@ services:
     command: ["sh", "-c", "printf 'map $$http_origin $$cors_origin { default \"\"; \"~^https?://(umbrel.local|.*.onion)(:[0-9]+)?$$\" $$http_origin; }\nserver { listen 9130; location / { proxy_pass http://madutxo-liquid-electrs_electrs_1:3000; proxy_set_header Host $$host; add_header Cache-Control no-cache; add_header Access-Control-Allow-Origin $$cors_origin always; add_header Access-Control-Allow-Methods \"GET, OPTIONS\" always; add_header Access-Control-Allow-Headers Content-Type always; if ($$request_method = OPTIONS) { return 204; } } }' > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
 
   electrs:
-    image: ghcr.io/madutxo/electrs-liquid:0.6.1@sha256:337460bfd27ace531f12d7af1f939a43bfbaa40160d3a5310157266960a25eeb
+    image: ghcr.io/madutxo/electrs-liquid:0.6.2@sha256:e31b97b385e7a89523e9961836a37f7358145781ed0a7bf14a8a884571eb3765
     user: "0:0"
     restart: unless-stopped
     security_opt:
