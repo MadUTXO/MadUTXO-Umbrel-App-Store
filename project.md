@@ -19,9 +19,9 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `ma
 │   └── ...
 └── madutxo-liquid-electrs/
     ├── Dockerfile (rust:1.82@sha256:d9c3c6, debian@sha256:8820, ELECTRS_SHA 4615126, gosu)
-    ├── entrypoint.sh (chown -R electrs:electrs /data, gosu)
-    ├── docker-compose.yml (0.6.1@sha256:337460, user:0:0, 60601:60601, 3000/9130 expose)
-    ├── umbrel-app.yml (0.7.38)
+    ├── entrypoint.sh (chown /data, non-fatal password persist + warning, gosu)
+    ├── docker-compose.yml (0.6.2@sha256:e31b97b, user:0:0, mem_limit:12g, 60601:60601, 3000/9130 expose)
+    ├── umbrel-app.yml (0.7.48 + memory WARNING)
     └── web/ ...
 ```
 **Rule:** Root only `README + umbrel-app-store.yml + .gitignore` + `scripts/.github`. `Dockerfile`/`entrypoint` live in `madutxo-liquid-electrs/` (not root) — `build` `context: ./madutxo-liquid-electrs`.
@@ -33,7 +33,7 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `ma
 
 ## Workflows & CI
 - **Lint (`lint.yml`):** Runs on `push` `madutxo-*/**` + `Dockerfile` + `scripts`. Steps: `yq` → `lint.sh` (both apps pinned, no-new-privileges, read_only) → `verify-digest.sh` (both pinned) → `Validate compose` (`yq del(.services.app_proxy)` > `/tmp/compose.test.yml` + `APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp ... docker compose config`). `app_proxy` has no `image` (Umbrel-injected) — must `del` before `config`.
-- **Build (`build-electrs-liquid.yml`):** `paths: madutxo-liquid-electrs/Dockerfile,entrypoint.sh` → `context: ./madutxo-liquid-electrs` `file: ./madutxo-liquid-electrs/Dockerfile` → `ghcr.io/madutxo/electrs-liquid:0.6.1` `@sha256:337460` `SHA-pinned actions` (`checkout@fbc6f39` etc.), `provenance: false`, `GHCR_PAT` secret (`write:packages` + `repo` + `workflow`).
+- **Build (`build-electrs-liquid.yml`):** `paths: madutxo-liquid-electrs/Dockerfile,entrypoint.sh` → `context: ./madutxo-liquid-electrs` `file: ./madutxo-liquid-electrs/Dockerfile` → `ghcr.io/madutxo/electrs-liquid:0.6.2` `@sha256:e31b97b` `SHA-pinned actions` (`checkout@fbc6f39` etc.), `provenance: false`, `GHCR_PAT` secret (`write:packages` + `repo` + `workflow`). Trigger by `workflow_dispatch` (no code push) when possible; verify digest + arch list (`amd64+arm64`) via `crane` before wiring the pin.
 - **Keep only passed runs:** `DELETE /repos/.../actions/runs/{id}` for `conclusion: failure` → `Actions` shows only `success` (clean).
 
 ## Security (Preserve)
@@ -62,9 +62,29 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `ma
 6. **Commit style:** `type: message` `+` `bump` `version` `0.7.x` `in` `umbrel-app.yml` + `releaseNotes` generic. `git log --oneline` clean like `4rkad`.
 7. **Clean history:** `gh api` `DELETE` `failed` `runs` → `Actions` `only` `success` `like` `4rkad`.
 
-## Final Learns
-- `Elements 30s idle close` → `electrs` `Mutex<Connection>` `EOF` → `daemon_rpc_conn_max_age 45` + `DAEMON 5/60/60/10` fixes `WARN disconnected`.
+## Final Learns- `Elements 30s idle close` → `electrs` `Mutex<Connection>` `EOF` → `daemon_rpc_conn_max_age 45` + `DAEMON 5/60/60/10` fixes `WARN disconnected`.
 - `web` `Tor Loading...` → `baked` `ELECTRS_TOR_ADDRESS` empty + `app_proxy` `302` → `fetch /tor-address` `+` `TOR_DATA_DIR:/tor:ro` `+` `nginx /tor-address`.
 - `USER electrs` `+` `root:root /data` → `Permission denied` `→` `user: "0:0"` `chown` `gosu` `→` `non-root` `runtime`.
 - `app_proxy` no `image` → `Validate compose` must `yq del(.services.app_proxy)`.
 - `LibreTranslate` `v1.6.5 → v1.9.5@b358e` `+` `read_only` `expose` `→` `same` `level` as `electrs`.
+- `Repo file ≠ running code:` `entrypoint.sh` lives *inside* the image — a repo fix needs an image rebuild (`0.6.2`) + pin update before any box sees it. Never assume a merged script is live.
+- `Tor 0.4.9 strictness:` new Tor fails fast on `Unparseable address` when the target hostname has no DNS yet (first boot), then self-heals on restart. Old Tor just started anyway. One scary log line, then `100% Done` — normal.
+
+## Incident Log 0.7.39–0.7.48 (what actually happened)
+
+- `0.7.39:` Tor `0.4.7.8 → 0.4.9.11` (EOL/CVE/30% stall). Notes missed it — process gap, led to the release-notes rule.
+- `0.7.40:` tried to fix 10GB steady RAM by shrinking everything (`16/16/1/50` + 3g cap). Fixed nothing, started the restart loop. Lesson: never tune blind — measure first.
+- `0.7.41:` full container names for proxy upstreams (DNS round-robin fix, mirrors 4rkad). Correct, tiny, no behavior change.
+- `0.7.43/0.6.2:` entrypoint password-persist made non-fatal (exit-2 loop → warning). Rebuilt image so digest matches source (traceability).
+- `0.7.44–0.7.46:` buffer rebalancing attempts, all guesses until the diagnostic build.
+- `0.7.47 (diagnostic):` cap removed on purpose, 23GB test box measured **9.3GB peak**, `restarts=0`, both servers up. Proof beats theory.
+- `0.7.48:` cap re-set to **12g** from measured data + memory WARNING in notes (10GB on first indexing and every boot, 8GB boxes may restart during catch-up, 16GB+ recommended).
+
+## Debugging Playbook (evidence order that works)
+
+1. `inspect` first: `exit=` + `oom=` + `restarts=` + `status=` — separates crash (non-zero, no oom) vs OOM-kill (137 + true) vs graceful stop (0) vs watchdog SIGKILL (137, oom false).
+2. `docker stats` second: actual usage vs cap at the moment of death. A 124MB death is never memory.
+3. `docker events` third: `container die ... exitCode=137 execDuration=49` names the killer and the lifespan. Filter noise from other apps.
+4. `ls -la` host paths fourth: root-owned files recreated by `exports.sh` on every start explain surviving `Permission denied`.
+5. `docker update --memory` experiment: proves/​kills a cap theory in minutes with zero repo changes.
+6. Never trust a single snapshot: browser UI only refreshes on reload; `docker logs --tail` shows the current incarnation only.
