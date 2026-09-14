@@ -102,13 +102,13 @@ services:
       - --db-dir
       - /data/db
       - --db-block-cache-mb
-      - "64"
-      - --db-write-buffer-size-mb
       - "32"
+      - --db-write-buffer-size-mb
+      - "64"
       - --db-parallelism
       - "2"
       - --initial-sync-batch-size
-      - "100"
+      - "150"
       - --cache-index-filter-blocks
       - --daemon-parallelism
       - "1"
