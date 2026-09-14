@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.47"
+version: "0.7.48"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -38,7 +38,7 @@ description: >-
 releaseNotes: >-
   Tor sidecar 0.4.7.8 to 0.4.9.11 (fixes EOL, bootstrap stall at 30 percent, dead 60601 hidden service).
 
-  Memory tuning for Umbrel servers: bound RocksDB index and filter blocks in cache, smaller write buffers, single-threaded sync, 3GB container limit so indexing cannot freeze the host.
+  Memory tuning for Umbrel servers: bound RocksDB index and filter blocks in cache, single-threaded sync, 12GB container limit so indexing cannot freeze the host.
 
   Proxy fix: web and api now use the full container name so Umbrel cannot route to the wrong Electrs app on shared networks.
 
@@ -46,9 +46,7 @@ releaseNotes: >-
 
   Image 0.6.2: same Electrs source, fixed startup script baked in (digest-pinned, both architectures).
 
-  Startup speed: balanced buffers after 0.7.40/0.7.45 proved too slow/fast to finish opening before the watchdog restarts the container (cap raised to 4GB, index blocks stay bounded in cache).
-
-  Diagnostic: container memory cap removed so a 23GB test box can measure real startup time and peak memory; cap will be re-set from measured data.
+  WARNING - memory requirements: first-time indexing and every app start need up to 10GB free RAM while the 4M-block index opens (measured 9.3GB peak). 8GB Umbrel Homes may restart during catch-up; the index is crash-safe and resumes. 16GB or more recommended.
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
