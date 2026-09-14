@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.44"
+version: "0.7.45"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -45,6 +45,8 @@ releaseNotes: >-
   Startup fix: password backup write can no longer kill startup (fixes restart loop exit 2 on root-owned password file).
 
   Image 0.6.2: same Electrs source, fixed startup script baked in (digest-pinned, both architectures).
+
+  Startup speed: rebalanced buffers after 0.7.40 proved too slow to finish opening before the watchdog restarts the container (cap raised to 4GB, index blocks stay bounded in cache).
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
