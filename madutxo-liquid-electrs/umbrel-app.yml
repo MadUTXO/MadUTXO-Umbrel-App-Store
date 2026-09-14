@@ -46,7 +46,7 @@ releaseNotes: >-
 
   Image 0.6.2: same Electrs source, fixed startup script baked in (digest-pinned, both architectures).
 
-  WARNING - memory requirements: first-time indexing and every app start need up to 10GB free RAM while the 4M-block index opens (measured 9.3GB peak). 8GB Umbrel Homes may restart during catch-up; the index is crash-safe and resumes. 16GB or more recommended.
+  WARNING - memory requirements: first-time indexing and every app start need up to 10GB free RAM while the 4M-block index opens. 8GB Umbrel Homes may restart during catch-up; the index is crash-safe and resumes. 16GB or more recommended.
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
