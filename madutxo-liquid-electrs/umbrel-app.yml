@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.48"
+version: "0.7.49"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,17 +36,15 @@ description: >-
   
   
 releaseNotes: >-
-  Tor sidecar 0.4.7.8 to 0.4.9.11 (fixes EOL, bootstrap stall at 30 percent, dead 60601 hidden service).
+  Synced with the latest upstream code from Blockstream Electrs (https://github.com/Blockstream/electrs), rebuilt as image 0.6.3.
 
-  Memory tuning for Umbrel servers: bound RocksDB index and filter blocks in cache, single-threaded sync, 12GB container limit so indexing cannot freeze the host.
+  Security hardening inherited with Liquid-sized defaults, no action needed: Electrum request lines capped, slow-client write timeout (30s), per-reply and global response memory budgets (32 MiB / 256 MiB on Liquid), history and UTXO scan limits with checkpoints, Merkle proof tree cache, and fee-estimate refresh de-duplication.
 
-  Proxy fix: web and api now use the full container name so Umbrel cannot route to the wrong Electrs app on shared networks.
+  Crash robustness under load: daemon responses are now verified with errors retried instead of aborting the process, index fetch failures stall-and-retry instead of crash-looping, and startup no longer reports sync complete at a partial tip.
 
-  Startup fix: password backup write can no longer kill startup (fixes restart loop exit 2 on root-owned password file).
+  REST correctness: mempool lookups are now atomic across confirmation and eviction (fixes a server abort under mempool pressure), with proper error codes and the daemon's actual witness indexed after broadcast.
 
-  Image 0.6.2: same Electrs source, fixed startup script baked in (digest-pinned, both architectures).
-
-  WARNING - memory requirements: first-time indexing and every app start need up to 10GB free RAM while the 4M-block index opens. 8GB Umbrel Homes may restart during catch-up; the index is crash-safe and resumes. 16GB or more recommended.
+  Existing index carries over, no reindex needed. Memory guidance unchanged: first-time indexing and every app start need up to 10GB free RAM; 16GB or more recommended.
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
