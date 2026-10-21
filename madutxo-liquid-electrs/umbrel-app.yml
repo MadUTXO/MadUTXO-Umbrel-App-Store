@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.49"
+version: "0.7.50"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,15 +36,13 @@ description: >-
   
   
 releaseNotes: >-
-  Synced with the latest upstream code from Blockstream Electrs (https://github.com/Blockstream/electrs), rebuilt as image 0.6.3.
+  Synced with the latest upstream code from Blockstream Electrs (https://github.com/Blockstream/electrs), rebuilt as image 0.6.4.
 
-  Security hardening inherited with Liquid-sized defaults, no action needed: Electrum request lines capped, slow-client write timeout (30s), per-reply and global response memory budgets (32 MiB / 256 MiB on Liquid), history and UTXO scan limits with checkpoints, Merkle proof tree cache, and fee-estimate refresh de-duplication.
+  Chain reorganizations are now handled safely: index cleanup is crash-safe, startup repairs a tip left inconsistent by older versions, and if cleanup fails the indexer stops with a clear error instead of advancing on corrupted data.
 
-  Crash robustness under load: daemon responses are now verified with errors retried instead of aborting the process, index fetch failures stall-and-retry instead of crash-looping, and startup no longer reports sync complete at a partial tip.
+  Confidential assets: reissuance token IDs are now derived correctly for confidential (blinded) issuances, so asset metadata and queries are accurate. Asset record parsing no longer aborts the server on malformed data.
 
-  REST correctness: mempool lookups are now atomic across confirmation and eviction (fixes a server abort under mempool pressure), with proper error codes and the daemon's actual witness indexed after broadcast.
-
-  Existing index carries over, no reindex needed. Memory guidance unchanged: first-time indexing and every app start need up to 10GB free RAM; 16GB or more recommended.
+  Existing index carries over, no reindex needed. No configuration or memory changes; first-time indexing and every app start still need up to 10GB free RAM, 16GB or more recommended.
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
