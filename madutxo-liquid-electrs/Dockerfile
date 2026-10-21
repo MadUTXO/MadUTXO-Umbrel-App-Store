@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 WORKDIR /build
 
 # Pinned Blockstream electrs new-index (deterministic, not branch)
-ARG ELECTRS_SHA=dd09701e84dc88a2c58a1365f798222b66e13772
+ARG ELECTRS_SHA=0963ef518a69f884496e1caf08315df874c9bf13
 RUN git clone --depth 1 https://github.com/Blockstream/electrs.git . \
     && git fetch --depth 1 origin ${ELECTRS_SHA} \
     && git checkout ${ELECTRS_SHA}
@@ -27,8 +27,8 @@ FROM debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe6
 LABEL org.opencontainers.image.title="electrs-liquid" \
       org.opencontainers.image.description="Electrum server for Liquid Network — Umbrel community app" \
       org.opencontainers.image.source="https://github.com/Blockstream/electrs" \
-      org.opencontainers.image.revision="dd09701e84dc88a2c58a1365f798222b66e13772" \
-      org.opencontainers.image.version="0.6.3"
+      org.opencontainers.image.revision="0963ef518a69f884496e1caf08315df874c9bf13" \
+      org.opencontainers.image.version="0.6.4"
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libsnappy1v5=1.1.9* \
