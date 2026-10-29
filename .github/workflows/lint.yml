@@ -6,15 +6,19 @@ on:
     paths:
       - 'madutxo-liquid-electrs/**'
       - 'madutxo-libretranslate/**'
+      - 'madutxo-torlink/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
+      - 'scripts/verify-digest.sh'
       - '.github/workflows/lint.yml'
   pull_request:
     paths:
       - 'madutxo-liquid-electrs/**'
       - 'madutxo-libretranslate/**'
+      - 'madutxo-torlink/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
+      - 'scripts/verify-digest.sh'
 
 jobs:
   lint:
@@ -40,3 +44,6 @@ jobs:
           yq eval 'del(.services.app_proxy)' madutxo-libretranslate/docker-compose.yml > /tmp/compose.libre.yml
           APP_DATA_DIR=/tmp docker compose -f /tmp/compose.libre.yml config >/dev/null
           echo "libretranslate compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-torlink/docker-compose.yml > /tmp/compose.torlink.yml
+          APP_DATA_DIR=/tmp UMBREL_ROOT=/tmp docker compose -f /tmp/compose.torlink.yml config >/dev/null
+          echo "torlink compose valid"

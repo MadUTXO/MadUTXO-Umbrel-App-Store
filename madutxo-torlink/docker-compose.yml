@@ -1,0 +1,52 @@
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-torlink_torlink_1
+      APP_PORT: 7681
+      PROXY_AUTH_ADD: "true"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+  torlink:
+    # Zero digest is the unpublished placeholder; pin the manifest-list digest after the build workflow.
+    image: ghcr.io/madutxo/torlink:1.10.0@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    expose:
+      - "7681"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:7681/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      - TZ=${TZ:-UTC}
+      - TORLINK_STATE_DIR=/state
+      - TORLINK_NO_WEBRTC=1
+      - TORLINK_NO_UTP=1
+      - TORLINK_NO_UPDATE_CHECK=1
+      - TORLINK_MAX_DOWNLOADS=3
+      - HOME=/state/home
+      - TMUX_TMPDIR=/tmp/tmux
+      - TERM=xterm-256color
+      - LANG=C.UTF-8
+    volumes:
+      - ${APP_DATA_DIR}/data:/state
+      - ${UMBREL_ROOT}/data/storage/downloads:/downloads

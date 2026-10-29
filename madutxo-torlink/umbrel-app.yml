@@ -1,0 +1,74 @@
+manifestVersion: 1
+id: madutxo-torlink
+storage:
+  dataRoot: data
+category: networking
+name: torlink
+version: "1.10.0"
+tagline: Search and download movies, TV, and anime from your browser
+description: >-
+  torlink is a terminal-native torrent finder and downloader, packaged for
+  Umbrel as a browser terminal. Search curated public indexes for movies, TV,
+  and anime, pick a result, and save it straight to your Umbrel Downloads
+  folder — ready for Jellyfin.
+
+
+    Downloads keep running when you close the tab; reopen the app to reattach to
+    the same session. The interface is a terminal, so a desktop browser is
+    recommended.
+
+
+    WARNING: torlink searches public torrent indexes over the clearnet. It does
+    not route searches or peer traffic through Tor. Downloads and the content
+    you choose are your responsibility; only download from sources you trust.
+
+
+    Notes:
+
+    - Files are saved to your Umbrel Downloads folder.
+
+    - Close the browser tab to detach. Pressing Ctrl-C inside torlink quits it and
+    stops downloads.
+
+    - WebRTC and uTP are disabled. No peer port is published, so inbound
+    seeding is not guaranteed; downloads do not require it.
+
+    - The Games category (FitGirl game repacks) is disabled in this port:
+      Jellyfin-friendly media only. Movies, TV, and Anime remain available.
+
+    - Settings and queue state persist across restarts.
+
+    - Concurrent downloads are capped at 3. In-app update checks are disabled;
+    updates arrive through the app store.
+releaseNotes: >-
+  Initial MadUTXO package of torlink 1.10.0.
+
+
+  Runs the official terminal interface through a pinned ttyd and a tmux
+  session, so downloads survive closing the tab. WebRTC and uTP are disabled
+  for a deterministic build that needs no native compilation. Files go to
+  your Umbrel Downloads folder.
+
+
+  Concurrent downloads are capped at 3, and in-app update checks are disabled
+  so the running code stays pinned to the image digest.
+
+
+  Searches and peer traffic use the clearnet, not Tor. No peer port is
+  published, so inbound seeding is not guaranteed. Press Ctrl-C to quit
+  and stop downloads; close the tab to detach.
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-torlink/icon.svg
+developer: bairon
+website: https://torlink.bairon.dev
+dependencies: []
+repo: https://github.com/MadUTXO/torlink
+support: https://github.com/MadUTXO/torlink/issues
+port: 3065
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: ""
+permissions:
+  - STORAGE_DOWNLOADS

@@ -49,4 +49,27 @@ esac
 if echo "$LIBRE_IMAGE" | grep -q ":latest"; then echo "FAIL: LibreTranslate latest"; exit 1; fi
 echo "✓ LibreTranslate not latest"
 
-echo "All digest checks passed"
+echo "--- torlink digest ---"
+TORLINK_COMPOSE="$ROOT/madutxo-torlink/docker-compose.yml"
+TORLINK_APP="$ROOT/madutxo-torlink/umbrel-app.yml"
+TORLINK_IMAGE=$(grep -E "image: ghcr.io/madutxo/torlink:" "$TORLINK_COMPOSE" | head -n1 | awk '{print $2}' | tr -d '"')
+echo "torlink image: $TORLINK_IMAGE"
+case "$TORLINK_IMAGE" in
+  *@sha256:* ) echo "✓ torlink image pinned" ;;
+  *) echo "FAIL: torlink image not pinned with @sha256:"; exit 1 ;;
+esac
+if echo "$TORLINK_IMAGE" | grep -q ":latest"; then echo "FAIL: torlink image uses latest"; exit 1; fi
+echo "✓ torlink image not latest"
+case "$TORLINK_IMAGE" in
+  *@sha256:0000000000000000000000000000000000000000000000000000000000000000)
+    echo "FAIL: torlink image uses the unpublished placeholder digest; publish the image and pin the real manifest-list digest";
+    exit 1 ;;
+esac
+TORLINK_VERSION=$(grep -E '^version: "' "$TORLINK_APP" | head -n1 | cut -d'"' -f2)
+TORLINK_IMAGE_TAG=$(echo "$TORLINK_IMAGE" | sed -n 's/.*torlink:\(.*\)@.*/\1/p')
+echo "torlink app version: $TORLINK_VERSION"
+echo "torlink image tag: $TORLINK_IMAGE_TAG"
+if [ "$TORLINK_VERSION" != "$TORLINK_IMAGE_TAG" ]; then echo "FAIL: torlink app version and image tag differ"; exit 1; fi
+echo "✓ torlink version matches image tag"
+
+echo "All digest format checks passed"

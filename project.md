@@ -1,22 +1,29 @@
 # MadUTXO Umbrel App Store — Project Learnings & Agent Guide
 
 ## Overview
-Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `madutxo-liquid-electrs` (Liquid Electrum, SideSwap) and `madutxo-libretranslate` (self-hosted translation). Goal: **clean, minimal, Umbrel-compatible, secure, reproducible, CI-green** — like `4rkad/umbrel-app-store`.
+Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 3 apps: `madutxo-liquid-electrs` (Liquid Electrum, SideSwap), `madutxo-libretranslate` (self-hosted translation), and `madutxo-torlink` (torrent finder/downloader). Goal: **clean, minimal, Umbrel-compatible, secure, reproducible, CI-green** — like `4rkad/umbrel-app-store`.
 
 ## Repo Structure (4rkad-clean)
 ```
 .
 ├── .github/workflows/build-electrs-liquid.yml  # SHA-pinned actions, GHCR_PAT, context: ./madutxo-liquid-electrs
-├── .github/workflows/lint.yml                  # yq del app_proxy + both apps, env APP_DATA_DIR=/tmp
+├── .github/workflows/build-torlink.yml         # SHA-pinned actions, GHCR_PAT, context: ./madutxo-torlink
+├── .github/workflows/lint.yml                  # yq del app_proxy + all apps, env APP_DATA_DIR=/tmp
 ├── .gitignore                                  # */data/ — NEVER remove (security)
 ├── README.md                                   # minimal store add instructions + disclaimer
 ├── umbrel-app-store.yml                        # id: madutxo
-├── scripts/lint.sh                             # yq checks both apps: images pinned, no-new-privileges, read_only
-├── scripts/verify-digest.sh                    # both apps pinned, not latest
+├── scripts/lint.sh                             # yq checks all apps: images pinned, no-new-privileges, read_only
+├── scripts/verify-digest.sh                    # all apps pinned, not latest
 ├── madutxo-libretranslate/                     # v1.9.5@sha256:b358e, hardened
 │   ├── docker-compose.yml (expose 5000, read_only, tmpfs)
 │   ├── umbrel-app.yml
 │   └── ...
+├── madutxo-torlink/                            # 1.10.0, ttyd+tmux TUI (Games disabled)
+│   ├── Dockerfile (node:22.23.4, torlink df05931, ttyd 1.7.7, games patched out)
+│   ├── entrypoint.sh (state/config, ttyd attach, downloads -> /downloads)
+│   ├── hooks/pre-start (mkdir/chown state)
+│   ├── docker-compose.yml (expose 7681, no peer port)
+│   └── umbrel-app.yml (port 3065, STORAGE_DOWNLOADS)
 └── madutxo-liquid-electrs/
     ├── Dockerfile (rust:1.82@sha256:d9c3c6, debian@sha256:8820, ELECTRS_SHA 4615126, gosu)
     ├── entrypoint.sh (chown /data, non-fatal password persist + warning, gosu)
@@ -32,14 +39,24 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 2 apps: `ma
 - **Trace before delete:** `git ls-files` + `rg` + `yq` + `docker compose config` for every file. Assume used until proven unused.
 
 ## Workflows & CI
-- **Lint (`lint.yml`):** Runs on `push` `madutxo-*/**` + `Dockerfile` + `scripts`. Steps: `yq` → `lint.sh` (both apps pinned, no-new-privileges, read_only) → `verify-digest.sh` (both pinned) → `Validate compose` (`yq del(.services.app_proxy)` > `/tmp/compose.test.yml` + `APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp ... docker compose config`). `app_proxy` has no `image` (Umbrel-injected) — must `del` before `config`.
-- **Build (`build-electrs-liquid.yml`):** `paths: madutxo-liquid-electrs/Dockerfile,entrypoint.sh` → `context: ./madutxo-liquid-electrs` `file: ./madutxo-liquid-electrs/Dockerfile` → `ghcr.io/madutxo/electrs-liquid:0.6.2` `@sha256:e31b97b` `SHA-pinned actions` (`checkout@fbc6f39` etc.), `provenance: false`, `GHCR_PAT` secret (`write:packages` + `repo` + `workflow`). Trigger by `workflow_dispatch` (no code push) when possible; verify digest + arch list (`amd64+arm64`) via `crane` before wiring the pin.
+- **Lint (`lint.yml`):** Runs on `push` `madutxo-*/**` + `Dockerfile` + `scripts`. Steps: `yq` → `lint.sh` (all apps pinned, no-new-privileges, read_only; torlink no host ports, `1000:1000`, hardening env) → `verify-digest.sh` (all pinned) → `Validate compose` (`yq del(.services.app_proxy)` > `/tmp/compose.test.yml` + `APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp ... docker compose config`). `app_proxy` has no `image` (Umbrel-injected) — must `del` before `config`.
+- **Build (`build-electrs-liquid.yml`, `build-torlink.yml`):** `paths: <app>/Dockerfile,entrypoint.sh` → `context: ./<app>` `file: ./<app>/Dockerfile` → `ghcr.io/madutxo/<app>:<version>` `@sha256:<manifest-list>` `SHA-pinned actions` (`checkout@fbc6f39` etc.), `provenance: false`, `GHCR_PAT` secret (`write:packages` + `repo` + `workflow`). Trigger by `workflow_dispatch` (no code push) when possible; verify digest + arch list (`amd64+arm64`) via `crane` before wiring the pin.
 - **Keep only passed runs:** `DELETE /repos/.../actions/runs/{id}` for `conclusion: failure` → `Actions` shows only `success` (clean).
+
+## Torlink Packaging Constraints
+
+- **One engine only.** TUI, `serve`, `watch`, and `seed` all call `startRuntime()` and share `queue.json` + `boot.marker`; two engine processes in one state dir corrupt state and can trigger false safe-mode. The package runs only the TUI.
+- **ttyd runs `torlnk attach`, not bare `torlnk`.** `attach` owns a persistent tmux session (`tmux new-session -A -s torlink`), so closing the browser tab detaches and downloads continue. Pressing `Ctrl-C` inside the TUI quits the engine.
+- **No peer port is published.** WebTorrent is constructed without `torrentPort`, so the TCP port is random; inbound seeding is not guaranteed. WebRTC and uTP are disabled (`TORLINK_NO_WEBRTC=1`, `TORLINK_NO_UTP=1`) to avoid native builds; `TORLINK_NO_UPDATE_CHECK=1` keeps runtime code pinned to the image digest.
+- **Games category disabled.** FitGirl game repacks are useless for Jellyfin and can execute code; the Games tab/source group is patched out at build time (movies, TV, anime remain; FitGirl shows under "All" only). Source patching is applied in the Dockerfile `sed` step after the pinned `git checkout`.
+- **Downloads go to the native Umbrel Downloads folder.** `downloadDir` is `/downloads` (mounted from `${UMBREL_ROOT}/data/storage/downloads`), matching the Transmission app — not a `/downloads/torlink` subfolder.
+- **State mapping.** `TORLINK_STATE_DIR=/state` → `/state/data` + `/state/config`; `hooks/pre-start` creates and chowns the state dirs because `*/data/` is gitignored and cannot carry `.gitkeep`.
+- **Interface is a terminal.** Browser terminal UX is the v1 tradeoff; a custom web UI is a possible later phase, not part of this package.
 
 ## Security (Preserve)
 - **`.gitignore` `*/data/` is protection** — prevents `app-data/*/data/db` `RocksDB` `610GB` + `.elements_rpc_pass` `600` leak. Never weaken.
 - **No secrets in repo:** `rg` `ghp_|PRIVATE KEY|seed` `0` hits. `GHCR_PAT` via `SealedBox` `key_id` `201` + `shred -u` after push. `ELECTRS_TOR_ADDRESS` sanitized `replace a-zA-Z0-9`.
-- **Hardening (electrs 0.7.38 level):** `no-new-privileges:true` `cap_drop: ALL` `read_only:true` `tmpfs` `expose` not `ports` for `3000/9130/5000`, `CORS` `map` not `*`, `user: "0:0"` → `gosu electrs` (fixes `root:root /data` `Permission denied` `panic 130`), `libretranslate` same.
+- **Hardening (electrs 0.7.38 level):** `no-new-privileges:true` `cap_drop: ALL` `read_only:true` `tmpfs` `expose` not `ports` for `3000/9130/5000/7681`, `CORS` `map` not `*`, `user: "0:0"` → `gosu electrs` (fixes `root:root /data` `Permission denied` `panic 130`), `libretranslate` same, `torlink` runs `1000:1000` with no host/peer ports.
 
 ## Handling Secrets & Tokens
 - `PAT classic` `repo + workflow + write:packages` for `GHCR_PAT` + `git push`. `shred -u /tmp/gh_token.txt` after use. `secret scanning` revokes `~1m` → rotate.
