@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="torlink">
-  <rect width="256" height="256" rx="22" fill="#0a0810"/>
+  <rect width="256" height="256" rx="22" fill="#000000"/>
   <rect x="1" y="1" width="254" height="254" rx="22" fill="none" stroke="#2d2b31" stroke-width="2"/>
   <g font-family="monospace" fill="#ddd8ea">
-    <rect x="108" y="52" width="10" height="44" rx="3" fill="#000000"/>
-    <rect x="119" y="44" width="10" height="60" rx="3" fill="#000000"/>
-    <rect x="130" y="48" width="10" height="52" rx="3" fill="#000000"/>
-    <rect x="141" y="56" width="10" height="44" rx="3" fill="#000000"/>
-    <rect x="152" y="50" width="10" height="56" rx="3" fill="#000000"/>
-    <text x="128" y="154" text-anchor="middle" font-size="52" fill="#5ae87a" font-weight="700">𐓏</text>
-    <text x="46" y="220" textLength="164" lengthAdjust="spacingAndGlyphs" font-size="40" font-weight="700" fill="#ddd8ea">torlink</text>
+    <rect x="108" y="12" width="10" height="44" rx="3" fill="#000000"/>
+    <rect x="119" y="4" width="10" height="60" rx="3" fill="#000000"/>
+    <rect x="130" y="8" width="10" height="52" rx="3" fill="#000000"/>
+    <rect x="141" y="16" width="10" height="44" rx="3" fill="#000000"/>
+    <rect x="152" y="10" width="10" height="56" rx="3" fill="#000000"/>
+    <text x="128" y="114" text-anchor="middle" font-size="52" fill="#5ae87a" font-weight="700">𐓏</text>
+    <text x="46" y="180" textLength="164" lengthAdjust="spacingAndGlyphs" font-size="40" font-weight="700" fill="#ddd8ea">torlink</text>
   </g>
 </svg>
