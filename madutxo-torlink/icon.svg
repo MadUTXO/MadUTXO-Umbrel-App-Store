@@ -1,39 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="torlink">
-  <rect width="256" height="256" fill="#000000"/>
-  <rect width="256" height="256" fill="#000000"/>
-  <text x="339.2" y="84" textLength="9.6" lengthAdjust="spacingAndGlyphs" xml:space="preserve" fill="#5ae87a" font-weight="600">𐓏</text>
-  <rect x="291.2" y="90" width="9.6" height="11" fill="#faf5ff"/>
-  <rect x="300.8" y="90" width="9.6" height="22" fill="#f5ecff"/>
-  <rect x="310.4" y="90" width="9.6" height="11" fill="#f0e2ff"/>
-  <rect x="329.6" y="90" width="9.6" height="22" fill="#e6cffe"/>
-  <rect x="339.2" y="90" width="9.6" height="11" fill="#e1c5fe"/>
-  <rect x="348.8" y="90" width="9.6" height="22" fill="#dcbcfe"/>
-  <rect x="368" y="90" width="9.6" height="22" fill="#d3b0fe"/>
-  <rect x="377.6" y="90" width="9.6" height="11" fill="#d0adfd"/>
-  <rect x="387.2" y="90" width="9.6" height="22" fill="#ccaafd"/>
-  <rect x="406.4" y="90" width="9.6" height="22" fill="#c4a4fc"/>
-  <rect x="444.8" y="90" width="9.6" height="22" fill="#b597fb"/>
-  <rect x="464" y="90" width="9.6" height="22" fill="#ae91fb"/>
-  <rect x="473.6" y="101" width="9.6" height="11" fill="#aa8efa"/>
-  <rect x="492.8" y="90" width="9.6" height="22" fill="#a487f7"/>
-  <rect x="512" y="90" width="9.6" height="22" fill="#9e81f3"/>
-  <rect x="521.6" y="101" width="9.6" height="11" fill="#9b7ef0"/>
-  <rect x="531.2" y="90" width="9.6" height="11" fill="#997bee"/>
-  <rect x="300.8" y="112" width="9.6" height="22" fill="#9375e9"/>
-  <rect x="329.6" y="112" width="9.6" height="22" fill="#8b6ce2"/>
-  <rect x="339.2" y="123" width="9.6" height="11" fill="#8869e0"/>
-  <rect x="348.8" y="112" width="9.6" height="22" fill="#8566de"/>
-  <rect x="368" y="112" width="9.6" height="22" fill="#8060d9"/>
-  <rect x="377.6" y="112" width="9.6" height="11" fill="#7d5dd7"/>
-  <rect x="387.2" y="123" width="9.6" height="11" fill="#7a5bd3"/>
-  <rect x="406.4" y="112" width="9.6" height="22" fill="#7456c9"/>
-  <rect x="416" y="123" width="9.6" height="11" fill="#7154c4"/>
-  <rect x="425.6" y="123" width="9.6" height="11" fill="#6e52c0"/>
-  <rect x="444.8" y="112" width="9.6" height="22" fill="#684eb6"/>
-  <rect x="464" y="112" width="9.6" height="22" fill="#6249ac"/>
-  <rect x="483.2" y="112" width="9.6" height="11" fill="#5b45a2"/>
-  <rect x="492.8" y="112" width="9.6" height="22" fill="#58439d"/>
-  <rect x="512" y="112" width="9.6" height="22" fill="#523e94"/>
-  <rect width="256" height="256" fill="#000000"/>
-  <rect width="256" height="256" fill="#000000"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="torlink">
+  <rect width="256" height="256" rx="22" fill="#0a0810"/>
+  <rect x="1" y="1" width="254" height="254" rx="22" fill="none" stroke="#2d2b31" stroke-width="2"/>
+  <g font-family="monospace" fill="#ddd8ea">
+    <rect x="108" y="52" width="10" height="44" rx="3" fill="#d3b0fe"/>
+    <rect x="119" y="44" width="10" height="60" rx="3" fill="#ccaafd"/>
+    <rect x="130" y="48" width="10" height="52" rx="3" fill="#b597fb"/>
+    <rect x="141" y="56" width="10" height="44" rx="3" fill="#a78bfa"/>
+    <rect x="152" y="50" width="10" height="56" rx="3" fill="#9e81f3"/>
+    <text x="128" y="148" text-anchor="middle" font-size="64" fill="#5ae87a" font-weight="700">𐓏</text>
+    <text x="128" y="206" text-anchor="middle" font-size="13" fill="#8a8a8a">torlink</text>
+  </g>
 </svg>
