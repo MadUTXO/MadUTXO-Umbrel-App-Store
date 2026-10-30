@@ -1,36 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="torlink">
-  <rect width="256" height="256" fill="#000000"/>
-  <rect width="256" height="256" rx="44" fill="none" stroke="#1a1a2e" stroke-width="2"/>
-  <!-- Green bolt -->
-  <g fill="#5ae87a">
-    <rect x="122" y="70" width="12" height="4"/>
-    <rect x="117" y="74" width="22" height="4"/>
-    <rect x="122" y="78" width="12" height="4"/>
-    <rect x="117" y="82" width="22" height="4"/>
-    <rect x="122" y="86" width="12" height="4"/>
-  </g>
-  <!-- TORLINK pixel wordmark (violet #b38cf0) -->
-  <g fill="#b38cf0">
-    <!-- T -->
-    <rect x="22" y="98" width="28" height="4"/><rect x="36" y="102" width="8" height="34"/>
-    <!-- O -->
-    <rect x="56" y="98" width="4" height="30"/><rect x="76" y="98" width="4" height="30"/>
-    <rect x="60" y="98" width="12" height="4"/><rect x="60" y="132" width="12" height="4"/>
-    <!-- R -->
-    <rect x="96" y="98" width="4" height="28"/><rect x="116" y="98" width="4" height="14"/>
-    <rect x="100" y="98" width="12" height="4"/><rect x="96" y="116" width="20" height="4"/>
-    <rect x="96" y="120" width="20" height="12"/>
-    <!-- L -->
-    <rect x="136" y="98" width="4" height="34"/><rect x="136" y="132" width="20" height="4"/>
-    <!-- I -->
-    <rect x="164" y="98" width="4" height="34"/>
-    <!-- N -->
-    <rect x="176" y="98" width="4" height="34"/><rect x="200" y="98" width="4" height="34"/>
-    <rect x="180" y="106" width="20" height="4"/><rect x="180" y="114" width="20" height="4"/>
-    <rect x="180" y="122" width="20" height="4"/>
-    <!-- K -->
-    <rect x="216" y="98" width="4" height="34"/><rect x="216" y="98" width="16" height="4"/>
-    <rect x="216" y="114" width="20" height="4"/><rect x="216" y="122" width="20" height="4"/>
-    <rect x="232" y="114" width="4" height="4"/><rect x="232" y="122" width="4" height="4"/>
-  </g>
-</svg>
+<rect width="256" height="256" fill="#000000"/>
+<rect width="256" height="256" fill="#000000"/>
+  <text x="339.2" y="84" textLength="9.6" lengthAdjust="spacingAndGlyphs" xml:space="preserve" fill="#5ae87a" font-weight="600">𐓏</text>
+    <rect x="291.2" y="90" width="9.6" height="11" fill="#faf5ff"/>
+    <rect x="300.8" y="90" width="9.6" height="22" fill="#f5ecff"/>
+    <rect x="310.4" y="90" width="9.6" height="11" fill="#f0e2ff"/>
+    <rect x="329.6" y="90" width="9.6" height="22" fill="#e6cffe"/>
+    <rect x="339.2" y="90" width="9.6" height="11" fill="#e1c5fe"/>
+    <rect x="348.8" y="90" width="9.6" height="22" fill="#dcbcfe"/>
+    <rect x="368" y="90" width="9.6" height="22" fill="#d3b0fe"/>
+    <rect x="377.6" y="90" width="9.6" height="11" fill="#d0adfd"/>
+    <rect x="387.2" y="90" width="9.6" height="22" fill="#ccaafd"/>
+    <rect x="406.4" y="90" width="9.6" height="22" fill="#c4a4fc"/>
+    <rect x="444.8" y="90" width="9.6" height="22" fill="#b597fb"/>
+    <rect x="464" y="90" width="9.6" height="22" fill="#ae91fb"/>
+    <rect x="473.6" y="101" width="9.6" height="11" fill="#aa8efa"/>
+    <rect x="492.8" y="90" width="9.6" height="22" fill="#a487f7"/>
+    <rect x="512" y="90" width="9.6" height="22" fill="#9e81f3"/>
+    <rect x="521.6" y="101" width="9.6" height="11" fill="#9b7ef0"/>
+    <rect x="531.2" y="90" width="9.6" height="11" fill="#997bee"/>
+    <rect x="300.8" y="112" width="9.6" height="22" fill="#9375e9"/>
+    <rect x="329.6" y="112" width="9.6" height="22" fill="#8b6ce2"/>
+    <rect x="339.2" y="123" width="9.6" height="11" fill="#8869e0"/>
+    <rect x="348.8" y="112" width="9.6" height="22" fill="#8566de"/>
+    <rect x="368" y="112" width="9.6" height="22" fill="#8060d9"/>
+    <rect x="377.6" y="112" width="9.6" height="11" fill="#7d5dd7"/>
+    <rect x="387.2" y="123" width="9.6" height="11" fill="#7a5bd3"/>
+    <rect x="406.4" y="112" width="9.6" height="22" fill="#7456c9"/>
+    <rect x="416" y="123" width="9.6" height="11" fill="#7154c4"/>
+    <rect x="425.6" y="123" width="9.6" height="11" fill="#6e52c0"/>
+    <rect x="444.8" y="112" width="9.6" height="22" fill="#684eb6"/>
+    <rect x="464" y="112" width="9.6" height="22" fill="#6249ac"/>
+    <rect x="483.2" y="112" width="9.6" height="11" fill="#5b45a2"/>
+    <rect x="492.8" y="112" width="9.6" height="22" fill="#58439d"/>
+    <rect x="512" y="112" width="9.6" height="22" fill="#523e94"/>
+<rect width="256" height="256" fill="#000000"/>
+<rect width="256" height="256" fill="#000000"/>
