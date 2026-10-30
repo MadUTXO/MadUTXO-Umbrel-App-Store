@@ -1,14 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="torlink">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0a0810"/>
-      <stop offset="1" stop-color="#13101a"/>
-    </linearGradient>
-  </defs>
-  <rect width="256" height="256" rx="44" fill="url(#bg)"/>
-  <rect width="256" height="256" rx="44" fill="none" stroke="#2d2b31" stroke-width="2"/>
-  <g font-family='ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace' font-weight="700">
-    <text x="128" y="78" text-anchor="middle" font-size="10" fill="#5ae87a">⚡</text>
-    <text x="128" y="152" text-anchor="middle" font-size="56" fill="#b38cf0">TORLINK</text>
+  <rect width="256" height="256" fill="#000000"/>
+  <rect width="256" height="256" rx="44" fill="none" stroke="#1a1a2e" stroke-width="2"/>
+  <g fill="#b38cf0">
+    <!-- T x0=22 -->
+    <rect x="22" y="115" width="5" height="5"/><rect x="27" y="115" width="5" height="5"/><rect x="32" y="115" width="5" height="5"/><rect x="37" y="115" width="5" height="5"/><rect x="42" y="115" width="5" height="5"/>
+    <rect x="32" y="120" width="5" height="5"/><rect x="32" y="125" width="5" height="5"/><rect x="32" y="130" width="5" height="5"/><rect x="32" y="135" width="5" height="5"/>
+    <!-- O x0=53 -->
+    <rect x="58" y="115" width="5" height="5"/><rect x="63" y="115" width="5" height="5"/><rect x="68" y="115" width="5" height="5"/>
+    <rect x="53" y="120" width="5" height="5"/><rect x="73" y="120" width="5" height="5"/>
+    <rect x="53" y="125" width="5" height="5"/><rect x="73" y="125" width="5" height="5"/>
+    <rect x="53" y="130" width="5" height="5"/><rect x="73" y="130" width="5" height="5"/>
+    <rect x="58" y="135" width="5" height="5"/><rect x="63" y="135" width="5" height="5"/><rect x="68" y="135" width="5" height="5"/>
+    <!-- R x0=84 -->
+    <rect x="89" y="115" width="5" height="5"/><rect x="94" y="115" width="5" height="5"/><rect x="99" y="115" width="5" height="5"/>
+    <rect x="84" y="120" width="5" height="5"/><rect x="104" y="120" width="5" height="5"/>
+    <rect x="84" y="125" width="5" height="5"/><rect x="104" y="125" width="5" height="5"/>
+    <rect x="89" y="130" width="5" height="5"/><rect x="94" y="130" width="5" height="5"/>
+    <rect x="84" y="135" width="5" height="5"/><rect x="99" y="135" width="5" height="5"/>
+    <!-- L x0=115 -->
+    <rect x="115" y="115" width="5" height="5"/><rect x="115" y="120" width="5" height="5"/><rect x="115" y="125" width="5" height="5"/><rect x="115" y="130" width="5" height="5"/><rect x="115" y="135" width="5" height="5"/>
+    <rect x="120" y="135" width="5" height="5"/><rect x="125" y="135" width="5" height="5"/><rect x="130" y="135" width="5" height="5"/><rect x="130" y="135" width="5" height="5"/>
+    <rect x="135" y="135" width="5" height="5"/>
+    <!-- I x0=146 c2=156 -->
+    <rect x="156" y="115" width="5" height="5"/><rect x="156" y="120" width="5" height="5"/><rect x="156" y="125" width="5" height="5"/><rect x="156" y="130" width="5" height="5"/><rect x="156" y="135" width="5" height="5"/>
+    <!-- N x0=177 -->
+    <rect x="177" y="115" width="5" height="5"/><rect x="202" y="115" width="5" height="5"/>
+    <rect x="177" y="120" width="5" height="5"/><rect x="182" y="120" width="5" height="5"/><rect x="202" y="120" width="5" height="5"/>
+    <rect x="177" y="125" width="5" height="5"/><rect x="187" y="125" width="5" height="5"/><rect x="202" y="125" width="5" height="5"/>
+    <rect x="177" y="130" width="5" height="5"/><rect x="192" y="130" width="5" height="5"/><rect x="202" y="130" width="5" height="5"/>
+    <rect x="177" y="135" width="5" height="5"/><rect x="202" y="135" width="5" height="5"/>
+    <!-- K x0=208 -->
+    <rect x="208" y="115" width="5" height="5"/><rect x="228" y="115" width="5" height="5"/>
+    <rect x="208" y="120" width="5" height="5"/><rect x="223" y="120" width="5" height="5"/>
+    <rect x="208" y="125" width="5" height="5"/><rect x="218" y="125" width="5" height="5"/>
+    <rect x="208" y="130" width="5" height="5"/><rect x="223" y="130" width="5" height="5"/>
+    <rect x="208" y="135" width="5" height="5"/><rect x="228" y="135" width="5" height="5"/>
+  </g>
+  <g fill="#5ae87a">
+    <!-- bolt above O -->
+    <rect x="63" y="90" width="5" height="5"/>
+    <rect x="58" y="95" width="5" height="5"/><rect x="63" y="95" width="5" height="5"/><rect x="68" y="95" width="5" height="5"/>
+    <rect x="63" y="100" width="5" height="5"/>
+    <rect x="53" y="105" width="5" height="5"/><rect x="58" y="105" width="5" height="5"/>
   </g>
 </svg>
