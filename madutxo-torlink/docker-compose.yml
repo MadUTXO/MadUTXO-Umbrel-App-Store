@@ -42,6 +42,7 @@ services:
       - TORLINK_NO_WEBRTC=1
       - TORLINK_NO_UTP=1
       - TORLINK_NO_UPDATE_CHECK=1
+      - TORLINK_STORE_CACHE_SLOTS=0
       - TORLINK_MAX_DOWNLOADS=3
       - HOME=/state/home
       - TMUX_TMPDIR=/tmp/tmux

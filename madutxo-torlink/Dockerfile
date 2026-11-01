@@ -10,9 +10,12 @@ RUN apt-get update \
 
 WORKDIR /src
 
+COPY torlink-memory.patch /tmp/torlink-memory.patch
+
 RUN git clone https://github.com/MadUTXO/torlink.git . \
     && git checkout --detach "${TORLINK_SHA}" \
     && test "$(git rev-parse HEAD)" = "${TORLINK_SHA}" \
+    && git apply /tmp/torlink-memory.patch \
     && sed -i \
         -e 's/SourceGroup = "Games" | "Movies" | "TV" | "Anime";/SourceGroup = "Movies" | "TV" | "Anime";/' \
         -e 's/groups: \["Games"\],/groups: [],/' \
@@ -73,6 +76,7 @@ ENV HOME=/state/home \
     TORLINK_NO_WEBRTC=1 \
     TORLINK_NO_UTP=1 \
     TORLINK_NO_UPDATE_CHECK=1 \
+    TORLINK_STORE_CACHE_SLOTS=0 \
     TERM=xterm-256color \
     LANG=C.UTF-8
 
