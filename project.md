@@ -18,8 +18,8 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 3 apps: `ma
 │   ├── docker-compose.yml (expose 5000, read_only, tmpfs)
 │   ├── umbrel-app.yml
 │   └── ...
-├── madutxo-torlink/                            # 1.10.0, ttyd+tmux TUI (Games disabled)
-│   ├── Dockerfile (node:22.23.4, torlink df05931, ttyd 1.7.7, games patched out)
+├── madutxo-torlink/                            # 1.10.1, ttyd+tmux TUI (Games disabled)
+│   ├── Dockerfile (node:22.23.4, torlink df05931, ttyd 1.7.7, games+memory patched)
 │   ├── entrypoint.sh (state/config, ttyd attach, downloads -> /downloads)
 │   ├── hooks/pre-start (mkdir/chown state)
 │   ├── docker-compose.yml (expose 7681, no peer port)
@@ -48,7 +48,8 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 3 apps: `ma
 - **One engine only.** TUI, `serve`, `watch`, and `seed` all call `startRuntime()` and share `queue.json` + `boot.marker`; two engine processes in one state dir corrupt state and can trigger false safe-mode. The package runs only the TUI.
 - **ttyd runs `torlnk attach`, not bare `torlnk`.** `attach` owns a persistent tmux session (`tmux new-session -A -s torlink`), so closing the browser tab detaches and downloads continue. Pressing `Ctrl-C` inside the TUI quits the engine.
 - **No peer port is published.** WebTorrent is constructed without `torrentPort`, so the TCP port is random; inbound seeding is not guaranteed. WebRTC and uTP are disabled (`TORLINK_NO_WEBRTC=1`, `TORLINK_NO_UTP=1`) to avoid native builds; `TORLINK_NO_UPDATE_CHECK=1` keeps runtime code pinned to the image digest.
-- **Games category disabled.** FitGirl game repacks are useless for Jellyfin and can execute code; the Games tab/source group is patched out at build time (movies, TV, anime remain; FitGirl shows under "All" only). Source patching is applied in the Dockerfile `sed` step after the pinned `git checkout`.
+- **Games category disabled.** FitGirl game repacks are useless for Jellyfin and can execute code; the Games tab/source group is patched out at build time (movies, TV, anime remain; FitGirl shows under "All" only). Source patching is applied in the Dockerfile after the pinned `git checkout`: `git apply torlink-memory.patch` plus the Games `sed` step.
+- **Memory bounded.** `TORLINK_STORE_CACHE_SLOTS=0` makes torlink pass `storeCacheSlots: 0` to WebTorrent, disabling the 20-piece-per-torrent cache that retained `20 × piece length` per seeded download. Measured with 10 × 400 MB seeds: ~3.4 GB RSS before, ~100 MB after.
 - **Downloads go to the native Umbrel Downloads folder.** `downloadDir` is `/downloads` (mounted from `${UMBREL_ROOT}/data/storage/downloads`), matching the Transmission app — not a `/downloads/torlink` subfolder.
 - **State mapping.** `TORLINK_STATE_DIR=/state` → `/state/data` + `/state/config`; `hooks/pre-start` creates and chowns the state dirs because `*/data/` is gitignored and cannot carry `.gitkeep`.
 - **Interface is a terminal.** Browser terminal UX is the v1 tradeoff; a custom web UI is a possible later phase, not part of this package.
