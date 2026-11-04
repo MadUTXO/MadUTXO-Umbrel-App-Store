@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: torlink
-version: "1.10.1"
+version: "1.10.2"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -41,6 +41,20 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
+  1.10.2:
+  - Downloads now keep running when you close the browser tab: the TUI runs in
+    a detached tmux session, so closing the tab only detaches and reopening
+    reattaches without pausing in-progress downloads.
+  - Seeding is now opt-in: a finished download stays paused and does not peer
+    or upload until you explicitly start seeding it.
+  - A download that finds no peers for 3 hours auto-pauses; only a manual
+    resume can restart it.
+  - Memory fix (carried over from 1.10.1): bounds torlink memory use by
+    disabling WebTorrent's 20-piece per-torrent cache. With 10 × 400 MB seeds
+    this drops steady RSS from ~3.4 GB to ~100 MB.
+  - Image rebuilt as 1.10.2 with a pinned digest.
+
+
   Port fix: bounds torlink memory use by disabling WebTorrent's 20-piece
   per-torrent cache (20 × piece length per seeded download, retained until
   restart). With 10 × 400 MB seeds this drops steady RSS from ~3.4 GB to
