@@ -35,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
-      - name: Build and push 1.10.6
+      - name: Build and push 1.10.7
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: ./madutxo-torlink
@@ -43,12 +43,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/madutxo/torlink:1.10.6
+            ghcr.io/madutxo/torlink:1.10.7
           labels: |
             org.opencontainers.image.title=torlink
             org.opencontainers.image.source=https://github.com/MadUTXO/torlink
             org.opencontainers.image.revision=df059311d0898b7245dd842153c1ff7c892275ee
-            org.opencontainers.image.version=1.10.6
+            org.opencontainers.image.version=1.10.7
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
