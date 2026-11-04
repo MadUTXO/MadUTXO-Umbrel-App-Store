@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: torlink
-version: "1.10.5"
+version: "1.10.6"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -41,10 +41,14 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
-  1.10.5:
+  1.10.6:
   - Browser tab now shows "TorLink" instead of the raw node command line.
-    Uses ttyd's native `title` option so the tab title is set directly
-    and survives detach/reattach across tab closes.
+    Renames the tmux window to "TorLink" and enables tmux set-titles so the
+    terminal title survives detach/reattach across tab closes.
+
+  1.10.5:
+  - Tab title fix attempted via ttyd title option (not effective, superseded
+    by 1.10.6 tmux window rename approach).
 
   1.10.4:
   - Image rebuilt with the detached-tmux attach flow and opt-in seeding
