@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: torlink
-version: "1.10.0"
+version: "1.10.1"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -41,13 +41,12 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
-  Initial MadUTXO package of torlink 1.10.0.
-
-
-  Runs the official terminal interface through a pinned ttyd and a tmux
-  session, so downloads survive closing the tab. WebRTC and uTP are disabled
-  for a deterministic build that needs no native compilation. Files go to
-  your Umbrel Downloads folder.
+  Port fix: bounds torlink memory use by disabling WebTorrent's 20-piece
+  per-torrent cache (20 × piece length per seeded download, retained until
+  restart). With 10 × 400 MB seeds this drops steady RSS from ~3.4 GB to
+  ~100 MB. Active downloads still complete normally; seeding behavior is
+  unchanged. Upstream torlink remains 1.10.0; this is a port-only patch.
+  Image rebuilt as 1.10.1 with a pinned digest.
 
 
   Concurrent downloads are capped at 3, and in-app update checks are disabled
