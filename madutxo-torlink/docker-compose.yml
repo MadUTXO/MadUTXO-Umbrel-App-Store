@@ -15,7 +15,7 @@ services:
 
   torlink:
     # Zero digest is the unpublished placeholder; pin the manifest-list digest after the build workflow.
-    image: ghcr.io/madutxo/torlink:1.10.7@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    image: ghcr.io/madutxo/torlink:1.10.7@sha256:732c5cad99e63b39714c2620ee30a5283044fb998440a5de2c7462bc13673d49
     user: "1000:1000"
     init: true
     restart: on-failure
