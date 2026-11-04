@@ -20,4 +20,4 @@ if [ ! -f "$CONFIG" ]; then
     chmod 600 "$CONFIG"
 fi
 
-exec ttyd -W -p 7681 -w /app -t disableLeaveAlert=true sh -c 'printf "\033]0;TorLink\007"; exec node /app/dist/cli.cjs attach'
+exec ttyd -W -p 7681 -w /app -t disableLeaveAlert=true node /app/dist/cli.cjs attach

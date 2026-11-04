@@ -1,8 +1,8 @@
 diff --git a/src/daemon/attach.ts b/src/daemon/attach.ts
-index 584ba6c..0a502f7 100644
+index 584ba6c..eb63c44 100644
 --- a/src/daemon/attach.ts
 +++ b/src/daemon/attach.ts
-@@ -34,7 +34,13 @@ export function runAttach(): never {
+@@ -34,7 +34,21 @@ export function runAttach(): never {
      process.exit(1);
    }
    const inner = tuiCommand(process.execPath, process.argv[1] ?? "");
@@ -13,11 +13,56 @@ index 584ba6c..0a502f7 100644
 +  // Closing the browser tab only detaches; it never stops the engine.
 +  if (spawnSync("tmux", ["has-session", "-t", SESSION], { stdio: "ignore" }).status !== 0) {
 +    spawnSync("tmux", ["new-session", "-d", "-s", SESSION, inner]);
++    // Give the tmux window a clean title so the browser tab shows "TorLink"
++    // instead of the raw node command line.
++    spawnSync("tmux", ["set-option", "-t", SESSION, "set-titles", "on"]);
++    spawnSync("tmux", ["set-option", "-t", SESSION, "set-titles-string", "TorLink"]);
 +  }
 +  // -d detaches other clients so this ttyd client can take over.
++  // Give the window a clean title so the browser tab shows "TorLink"
++  // instead of the raw node command line (applies to new and existing sessions).
++  spawnSync("tmux", ["set-option", "-t", SESSION, "set-titles", "on"]);
++  spawnSync("tmux", ["set-option", "-t", SESSION, "set-titles-string", "TorLink"]);
 +  const r = spawnSync("tmux", ["attach-session", "-d", "-t", SESSION], { stdio: "inherit" });
    process.exit(r.status ?? 0);
  }
+diff --git a/src/download/queue.playlist.test.ts b/src/download/queue.playlist.test.ts
+index 22f9d82..7fd6d58 100644
+--- a/src/download/queue.playlist.test.ts
++++ b/src/download/queue.playlist.test.ts
+@@ -46,25 +46,27 @@ describe("DownloadQueue playlists", () => {
+   });
+ 
+   // Restored seeds verify on every launch, so writing here would put back a
+-  // playlist the user deleted.
+-  it("leaves a restored seed alone when it passes verification", () => {
++  // playlist the user deleted. With opt-in seeding they are restored paused and
++  // never touch the engine, so there is no `onDone` to fire.
++  it("restores a seeding record as paused and stays out of the engine", () => {
+     const q = new DownloadQueue();
+     q.restoreHistory([
+       { id: "s1", name: "Course", magnet: MAGNET, dir: "/downloads", sizeBytes: 100, completedAt: 1 },
+     ]);
+     q.restoreSeeds([{ id: "s1", status: "seeding" }]);
+-    handlers.get("s1")!.onDone!();
++    expect(q.getSeed("s1")?.status).toBe("paused");
++    expect(handlers.has("s1")).toBe(false);
+     expect(writePlaylists).not.toHaveBeenCalled();
+     q.suspend();
+   });
+ 
+-  it.each(["option", "environment"])("honors the %s opt-out while completing normally", (optOut) => {
++  it.each(["option", "environment"])("does not auto-seed when completing normally", (optOut) => {
+     if (optOut === "environment") vi.stubEnv("TORLINK_NO_PLAYLIST", "1");
+     const q = new DownloadQueue(optOut === "option" ? { playlist: false } : {});
+     q.add({ id: "t2", name: "Course", magnet: MAGNET }, "/downloads");
+     handlers.get("t2")!.onDone!();
+     expect(writePlaylists).not.toHaveBeenCalled();
+-    expect(q.getSeed("t2")?.status).toBe("seeding");
++    expect(q.getSeed("t2")?.status).toBe("paused");
+     q.suspend();
+   });
+ });
 diff --git a/src/download/queue.ts b/src/download/queue.ts
 index 996e569..d32dd9c 100644
 --- a/src/download/queue.ts
