@@ -11,11 +11,13 @@ RUN apt-get update \
 WORKDIR /src
 
 COPY torlink-memory.patch /tmp/torlink-memory.patch
+COPY torlink-bg-seed.patch /tmp/torlink-bg-seed.patch
 
 RUN git clone https://github.com/MadUTXO/torlink.git . \
     && git checkout --detach "${TORLINK_SHA}" \
     && test "$(git rev-parse HEAD)" = "${TORLINK_SHA}" \
     && git apply /tmp/torlink-memory.patch \
+    && git apply /tmp/torlink-bg-seed.patch \
     && sed -i \
         -e 's/SourceGroup = "Games" | "Movies" | "TV" | "Anime";/SourceGroup = "Movies" | "TV" | "Anime";/' \
         -e 's/groups: \["Games"\],/groups: [],/' \

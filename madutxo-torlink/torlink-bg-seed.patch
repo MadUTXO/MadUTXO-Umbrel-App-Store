@@ -1,0 +1,157 @@
+diff --git a/src/daemon/attach.ts b/src/daemon/attach.ts
+index 584ba6c..0a502f7 100644
+--- a/src/daemon/attach.ts
++++ b/src/daemon/attach.ts
+@@ -34,7 +34,13 @@ export function runAttach(): never {
+     process.exit(1);
+   }
+   const inner = tuiCommand(process.execPath, process.argv[1] ?? "");
+-  // -A: attach if the session exists, otherwise create it and run the TUI.
+-  const r = spawnSync("tmux", ["new-session", "-A", "-s", SESSION, inner], { stdio: "inherit" });
++  // Create the tmux session detached if it doesn't exist, so the TUI (and any
++  // in-progress download) keeps running after the ttyd client disconnects.
++  // Closing the browser tab only detaches; it never stops the engine.
++  if (spawnSync("tmux", ["has-session", "-t", SESSION], { stdio: "ignore" }).status !== 0) {
++    spawnSync("tmux", ["new-session", "-d", "-s", SESSION, inner]);
++  }
++  // -d detaches other clients so this ttyd client can take over.
++  const r = spawnSync("tmux", ["attach-session", "-d", "-t", SESSION], { stdio: "inherit" });
+   process.exit(r.status ?? 0);
+ }
+diff --git a/src/download/queue.ts b/src/download/queue.ts
+index 996e569..d32dd9c 100644
+--- a/src/download/queue.ts
++++ b/src/download/queue.ts
+@@ -42,6 +42,9 @@ const STRAY_TICKS = 2; // consecutive stray polls before flagging missing (~1s)
+ // missing. So the clock starts when the check ends (the engine's onReady), and
+ // the grace only has to cover that repair.
+ const SEED_GRACE_MS = 10_000;
++// A download that finds zero peers for this long is auto-paused; only a manual
++// resume can restart it.
++const NO_PEER_PAUSE_MS = 3 * 60 * 60 * 1000;
+ 
+ // A magnet with no peers never fires onMetadata or onError, so a metadata-only
+ // fetch (fetchAndExportTorrent) would otherwise hang forever. Give up after
+@@ -298,48 +301,52 @@ export class DownloadQueue extends EventEmitter {
+   private complete(it: QueueItem): void {
+     this.recordHistory(it);
+     this.items.delete(it.id);
+-    // Opt-out seeding: a finished download is already a complete, verified
+-    // torrent, so keep it alive and seeding instead of tearing it down.
+-    this.beginSeed(it);
+-    // Only here, never when a restored seed passes verification: that fires
+-    // on every launch, and would put back a playlist the user deleted.
++    // Opt-in seeding: a finished download does NOT start seeding by default.
++    // It stays a paused seed record until the user explicitly starts it.
++    if (it.magnet) {
++      this.seeds.set(it.id, {
++        id: it.id,
++        name: it.name,
++        source: it.source,
++        magnet: it.magnet,
++        dir: it.dir,
++        sizeBytes: it.totalBytes,
++        status: "paused",
++        uploadSpeed: 0,
++        uploaded: 0,
++        peers: 0,
++      });
++      this.seedStartedAt.delete(it.id);
++      this.strayHits.delete(it.id);
++    }
+     if (this.playlist) void writePlaylists(it.dir, this.engine.filePaths(it.id));
+     this.emit("completed", it.name);
+     this.changed();
+     void this.persist();
+-    this.promote(); // a slot just freed
++    this.promote();
+     this.maybeStopPoll();
+   }
+ 
+-  // Adopt the just-finished download's live torrent as a seed in place: no
+-  // re-add, no re-verify (progress is already 1, so stray detection never
+-  // trips). Restart / manual resume go through startSeeding instead.
+-  private beginSeed(it: QueueItem): void {
+-    if (!it.magnet) return;
+-    this.seeds.set(it.id, {
+-      id: it.id,
+-      name: it.name,
+-      source: it.source,
+-      magnet: it.magnet,
+-      dir: it.dir,
+-      sizeBytes: it.totalBytes,
+-      status: "seeding",
+-      uploadSpeed: 0,
+-      uploaded: 0,
+-      peers: 0,
+-    });
+-    this.strayHits.set(it.id, 0);
+-    this.seedStartedAt.set(it.id, Date.now());
+-    this.ensurePoll();
+-    void this.persistSeeds();
+-  }
+-
+   private tick(): void {
+     let any = false;
+     for (const it of this.items.values()) {
+       if (it.status !== "downloading") continue;
+       const s = this.engine.stats(it.id);
+       if (!s) continue;
++      // Auto-pause a download that finds no peers for 3h; only a manual resume
++      // can restart it.
++      if (s.peers === 0 && it.progress < 100) {
++        if (it.noPeerSince === undefined) it.noPeerSince = Date.now();
++        else if (Date.now() - it.noPeerSince >= NO_PEER_PAUSE_MS) {
++          this.pause(it.id);
++          it.pausedForNoPeers = true;
++          this.promote();
++          continue;
++        }
++      } else {
++        it.noPeerSince = undefined;
++        if (it.pausedForNoPeers) it.pausedForNoPeers = false;
++      }
+       it.progress = Math.min(100, Math.round(s.progress * 100));
+       it.downloadedBytes = s.downloaded;
+       if (s.total) it.totalBytes = s.total;
+@@ -428,6 +435,10 @@ export class DownloadQueue extends EventEmitter {
+     // Respect the cap on manual resume: start if a slot is free, else re-queue.
+     const start = this.maxDownloads === 0 || this.activeCount < this.maxDownloads;
+     it.status = start ? "downloading" : "queued";
++    // Manual resume clears any 3h no-peer auto-pause and restarts from where it
++    // left off.
++    it.noPeerSince = undefined;
++    it.pausedForNoPeers = false;
+     if (start) {
+       this.startEngine(it);
+       this.ensurePoll();
+@@ -657,11 +668,10 @@ export class DownloadQueue extends EventEmitter {
+     for (const r of records) {
+       const h = this.history.find((x) => x.id === r.id);
+       if (!h) continue;
+-      // Respect the persisted choice: resume seeders, but leave a paused seed
+-      // paused (and visibly so) instead of auto-starting it. In safe mode even
+-      // seeders come back paused, since re-seeding also feeds the engine.
+-      if (r.status === "seeding" && !opts.safe) this.startSeeding(h);
+-      else this.restorePaused(h);
++      // Opt-in seeding: nothing auto-starts on restore. Every restored record
++      // comes back paused so no peer connections or uploads happen until the
++      // user explicitly starts seeding.
++      this.restorePaused(h);
+     }
+     if (opts.safe) void this.persistSeeds();
+   }
+diff --git a/src/download/types.ts b/src/download/types.ts
+index fc87329..ce1d8f7 100644
+--- a/src/download/types.ts
++++ b/src/download/types.ts
+@@ -38,4 +38,9 @@ export interface QueueItem {
+   addedAt: number;
+   // Carried from add() into the history entry on completion (see HistoryItem).
+   seedTimeMs?: number;
++  // Set when a download has had zero peers continuously; used for the 3h
++  // no-peer auto-pause (manual resume only).
++  noPeerSince?: number;
++  // Set by the 3h no-peer auto-pause; cleared on any manual resume.
++  pausedForNoPeers?: boolean;
+ }
