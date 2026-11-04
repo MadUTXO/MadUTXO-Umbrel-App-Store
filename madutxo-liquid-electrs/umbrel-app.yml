@@ -46,11 +46,11 @@ releaseNotes: >-
 
   Maintained by MadUTXO.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
-developer: MadUTXO
-website: https://github.com/Blockstream/electrs
+developer: Blockstream
+website: https://github.com/Blockstream
 dependencies:
   - elements
-repo: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+repo: https://github.com/Blockstream/electrs
 support: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/issues
 port: 3062
 gallery: []
@@ -58,4 +58,4 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 submitter: MadUTXO
-submission: ""
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-liquid-electrs
