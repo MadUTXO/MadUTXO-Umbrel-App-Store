@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "0.7.50"
+version: "0.7.51"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -36,11 +36,13 @@ description: >-
   
   
 releaseNotes: >-
-  Synced with the latest upstream code from Blockstream Electrs (https://github.com/Blockstream/electrs), rebuilt as image 0.6.4.
+  Synced with the latest upstream code from Blockstream Electrs (https://github.com/Blockstream/electrs), rebuilt as image 0.6.5.
 
-  Chain reorganizations are now handled safely: index cleanup is crash-safe, startup repairs a tip left inconsistent by older versions, and if cleanup fails the indexer stops with a clear error instead of advancing on corrupted data.
+  Prometheus metrics exported for REST requests — track latency, error rates and request volume per endpoint.
 
-  Confidential assets: reissuance token IDs are now derived correctly for confidential (blinded) issuances, so asset metadata and queries are accurate. Asset record parsing no longer aborts the server on malformed data.
+  Index robustness: a failed file import now falls back to the daemon RPC instead of stalling, and checkpoint proof rebuild rejections return retriable error codes instead of aborting.
+
+  Electrum: the indexed genesis hash is now served via server.features independently of peer discovery, and the server waits for a fee estimate when the cache is empty.
 
   Existing index carries over, no reindex needed. No configuration or memory changes; first-time indexing and every app start still need up to 10GB free RAM, 16GB or more recommended.
 
