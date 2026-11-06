@@ -1,26 +1,37 @@
 # syntax=docker/dockerfile:1
 
 # ---------------------------------------------------------------------------
-# Stage 1: build the routstrd-auth gatekeeper from pinned upstream source.
-# The gatekeeper is not published to npm, so it is built from the repo.
+# Stage 1: build the gatekeeper and the global routstrd install.
+# Build tools are required because a transitive dependency (better-sqlite3)
+# compiles a native module during install.
 # ---------------------------------------------------------------------------
-FROM oven/bun:1.4.4-slim@sha256:1846adf22496bd711036aae8be147e57bdebbaea2e5264e3e0b5af1db187d9a4 AS authbuild
+FROM oven/bun:1.4.4-slim@sha256:1846adf22496bd711036aae8be147e57bdebbaea2e5264e3e0b5af1db187d9a4 AS build
 
 USER root
 
 ARG ROUTSTRD_REMOTE_SHA=f5228ee3cc8ac7cdadb407a354bb7fc500bd4711
 
+ENV BUN_INSTALL=/usr/local/bun
+ENV BUN_INSTALL_BIN=/usr/local/bin
+
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates git \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates git make g++ python3 \
     && rm -rf /var/lib/apt/lists/*
 
+# Gatekeeper (routstrd-auth) source + production deps.
 WORKDIR /src
-
 RUN git clone https://github.com/Routstr/routstrd-remote.git . \
     && git checkout --detach "${ROUTSTRD_REMOTE_SHA}" \
     && test "$(git rev-parse HEAD)" = "${ROUTSTRD_REMOTE_SHA}" \
     && bun install --frozen-lockfile --production \
     && rm -rf /src/.git
+
+# routstrd daemon/CLI, globally. BUN_INSTALL keeps the package out of /root
+# (unreadable by the runtime user).
+RUN bun install --global routstrd@0.4.18 \
+    && command -v routstrd \
+    && routstrd --version
 
 # ---------------------------------------------------------------------------
 # Stage 2: runtime.
@@ -55,15 +66,6 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
     fi \
     && bun --version
 
-# Install the routstrd daemon/CLI at a pinned version, globally. BUN_INSTALL
-# keeps the package out of /root (unreadable by the runtime user); the base
-# image's BUN_INSTALL_BIN=/usr/local/bin puts the binary on PATH.
-ENV BUN_INSTALL=/usr/local/bun
-ENV BUN_INSTALL_BIN=/usr/local/bin
-RUN bun install --global routstrd@0.4.18 \
-    && command -v routstrd \
-    && routstrd --version
-
 # Install ttyd (browser terminal), pinned per-arch by SHA256.
 RUN case "${TARGETARCH}" in \
         amd64) ttyd_arch=x86_64; ttyd_sha=8a217c968aba172e0dbf3f34447218dc015bc4d5e59bf51db2f2cd12b7be4f55 ;; \
@@ -76,8 +78,15 @@ RUN case "${TARGETARCH}" in \
     && chmod 0755 /usr/local/bin/ttyd \
     && ttyd --version
 
+# Global routstrd install from the build stage (native module already built).
+ENV BUN_INSTALL=/usr/local/bun
+ENV BUN_INSTALL_BIN=/usr/local/bin
+COPY --from=build /usr/local/bun /usr/local/bun
+RUN ln -sf /usr/local/bun/install/global/node_modules/routstrd/dist/index.js /usr/local/bin/routstrd \
+    && routstrd --version
+
 # Gatekeeper source + production deps from the build stage.
-COPY --from=authbuild /src /app/auth
+COPY --from=build /src /app/auth
 
 # Package configuration.
 COPY entrypoint.sh /entrypoint.sh
