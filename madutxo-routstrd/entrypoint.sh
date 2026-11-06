@@ -6,12 +6,31 @@ export HOME="${HOME:-/data/home}"
 mkdir -p "$ROUTSTRD_DIR" "$HOME" /tmp/tmux
 
 # One-time onboarding: creates config.json, the Nostr identity, and the wallet,
-# then starts a detached daemon. Stop that daemon so supervisord owns the
-# foreground daemon instead.
+# then starts a detached daemon. That daemon owns the wallet lock, so stop it
+# and wait for the lock to be released before supervisord starts the foreground
+# daemon. Without the wait the daemon fails to claim the wallet and exits.
 if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
     echo "[entrypoint] first run: onboarding routstrd"
     routstrd onboard --skip-integration
     routstrd stop || true
+
+    _waited=0
+    while [ "$_waited" -lt 60 ]; do
+        _pid="$(cat "$ROUTSTRD_DIR/wallet/wallet.pid" 2>/dev/null || true)"
+        if [ -z "$_pid" ] || ! kill -0 "$_pid" 2>/dev/null; then
+            break
+        fi
+        routstrd stop >/dev/null 2>&1 || true
+        sleep 1
+        _waited=$((_waited + 1))
+    done
+
+    _pid="$(cat "$ROUTSTRD_DIR/wallet/wallet.pid" 2>/dev/null || true)"
+    if [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null; then
+        echo "[entrypoint] warning: onboarding daemon $_pid still up; terminating"
+        kill "$_pid" 2>/dev/null || true
+        sleep 2
+    fi
 fi
 
 # The container's own npub must be an admin so the web terminal can manage
