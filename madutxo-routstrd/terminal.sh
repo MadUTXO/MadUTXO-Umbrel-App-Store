@@ -20,6 +20,10 @@ cat <<'BANNER'
   Point your agent (OpenCode, Hermes, ...) at this app's URL with the API key
   from "routstrd clients add".
 
+  Wallet recovery phrase (first run only):
+    cat /data/routstrd/mnemonic.txt          view it, write it down offline
+    rm  /data/routstrd/mnemonic.txt          delete it after writing it down
+
 BANNER
 
 exec /bin/sh

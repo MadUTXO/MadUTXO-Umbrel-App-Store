@@ -11,7 +11,24 @@ mkdir -p "$ROUTSTRD_DIR" "$HOME" /tmp/tmux
 # daemon. Without the wait the daemon fails to claim the wallet and exits.
 if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
     echo "[entrypoint] first run: onboarding routstrd"
-    routstrd onboard --skip-integration
+    # Capture onboarding output so the wallet mnemonic is never written to the
+    # container logs. It is saved to a 0600 file the user can read in the
+    # browser terminal (behind Umbrel login) and delete after writing it down.
+    _onboard_log="$(mktemp)"
+    if ! routstrd onboard --skip-integration >"$_onboard_log" 2>&1; then
+        echo "[entrypoint] onboarding failed" >&2
+        sed 's#Mnemonic:.*#Mnemonic: [REDACTED]#' "$_onboard_log" >&2 || true
+        rm -f "$_onboard_log"
+        exit 1
+    fi
+    _mnemonic="$(sed -n 's/.*Mnemonic:[[:space:]]*//p' "$_onboard_log" | head -1)"
+    if [ -n "$_mnemonic" ]; then
+        printf '%s\n' "$_mnemonic" > "$ROUTSTRD_DIR/mnemonic.txt"
+        chmod 600 "$ROUTSTRD_DIR/mnemonic.txt"
+        echo "[entrypoint] wallet mnemonic saved to $ROUTSTRD_DIR/mnemonic.txt (0600); view it in the terminal"
+    fi
+    sed 's#Mnemonic:.*#Mnemonic: [REDACTED — view with: cat /data/routstrd/mnemonic.txt]#' "$_onboard_log"
+    rm -f "$_onboard_log"
     routstrd stop || true
 
     _waited=0
