@@ -106,6 +106,6 @@ ENV ROUTSTRD_DIR=/data/routstrd \
     TERM=xterm-256color \
     LANG=C.UTF-8
 
-EXPOSE 8080
+EXPOSE 3066
 
 ENTRYPOINT ["/entrypoint.sh"]

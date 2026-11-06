@@ -2,7 +2,7 @@ services:
   app_proxy:
     environment:
       APP_HOST: madutxo-routstrd_app_1
-      APP_PORT: 8080
+      APP_PORT: 3066
       # API + management paths bypass Umbrel login so agents (API keys) and
       # remote NIP-98 clients can reach the gatekeeper, which authenticates.
       # /settings/* and /cooldowns/* are intentionally excluded (the gatekeeper
@@ -32,9 +32,9 @@ services:
       - /tmp
       - /run
     expose:
-      - "8080"
+      - "3066"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3066/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
