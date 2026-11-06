@@ -3,12 +3,7 @@ services:
     environment:
       APP_HOST: madutxo-routstrd_app_1
       APP_PORT: 8080
-      # The terminal stays behind Umbrel login. API and management paths are
-      # whitelisted so agents and remote NIP-98 clients can reach the gatekeeper,
-      # which does its own key/Nostr authentication. /settings/* and /cooldowns/*
-      # are deliberately NOT whitelisted: the gatekeeper does not restrict them
-      # for Bearer keys, so they stay behind Umbrel login.
-      PROXY_AUTH_WHITELIST: "/v1/*,/models/*,/health,/ping,/npubs,/clients/*,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/providers,/providers/*"
+      PROXY_AUTH_ADD: "true"
     security_opt:
       - no-new-privileges:true
     cap_drop:

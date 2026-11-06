@@ -22,11 +22,6 @@ description: >-
 
   Getting started:
 
-  - First start: in the Umbrel dashboard, open this app's settings, then
-    Advanced > Environment variables, and set ROUTSTRD_ADMIN_NPUB to your
-    Nostr public key (npub1...) so you can manage this node from your own
-    devices. Changing it restarts the app.
-
   - Open the app to reach the browser terminal.
 
   - Top up the wallet: run `routstrd receive 2100` for a Lightning invoice, or
