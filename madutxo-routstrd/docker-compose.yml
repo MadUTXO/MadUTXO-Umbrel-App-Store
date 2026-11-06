@@ -19,9 +19,7 @@ services:
       - /run
 
   app:
-    # Zero digest is the unpublished placeholder; pin the manifest-list digest
-    # after the build workflow publishes the image.
-    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:8f4d9ca8da2a82d2b996438e525aedb3e9f82baad4da3adea3d27a0273f9fb41
     user: "1000:1000"
     init: true
     restart: unless-stopped
