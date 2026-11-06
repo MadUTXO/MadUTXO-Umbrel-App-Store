@@ -3,22 +3,13 @@ services:
     environment:
       APP_HOST: madutxo-routstrd_app_1
       APP_PORT: 8080
-      PROXY_AUTH_ADD: "true"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /run
 
   app:
     image: ghcr.io/madutxo/routstrd:0.1.33@sha256:f7edda84716330b4bb770b03258ff27488021e2850503ac19b8be10a01e2f596
     user: "1000:1000"
     init: true
-    restart: unless-stopped
-    stop_grace_period: 1m
+    restart: on-failure
+    stop_grace_period: 30s
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -27,8 +18,6 @@ services:
     tmpfs:
       - /tmp
       - /run
-      - /var/lib/nginx
-      - /var/cache/nginx
     expose:
       - "8080"
     healthcheck:
@@ -37,8 +26,5 @@ services:
       timeout: 5s
       retries: 3
       start_period: 90s
-    environment:
-      - TZ=${TZ:-UTC}
-      - APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=${APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST}
     volumes:
       - ${APP_DATA_DIR}/data:/data
