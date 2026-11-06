@@ -18,7 +18,7 @@ services:
       - /run
 
   app:
-    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:67c4ef35a032977783e54a1329d03a173c7c03916b143bff1357d2279f42c141
+    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:56390c01686f858b58dca7871d129c829283814fd0032135e718710747e9584a
     user: "1000:1000"
     init: true
     restart: on-failure
