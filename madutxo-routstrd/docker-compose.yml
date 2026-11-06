@@ -8,6 +8,14 @@ services:
       # /settings/* and /cooldowns/* are intentionally excluded (the gatekeeper
       # does not restrict them for Bearer keys).
       PROXY_AUTH_WHITELIST: "/v1/*,/models/*,/health,/ping,/npubs,/clients/*,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/providers,/providers/*"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
 
   app:
     image: ghcr.io/madutxo/routstrd:0.1.33@sha256:67c4ef35a032977783e54a1329d03a173c7c03916b143bff1357d2279f42c141
