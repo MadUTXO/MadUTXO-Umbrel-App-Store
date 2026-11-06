@@ -89,6 +89,7 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 3 apps: `ma
 - `LibreTranslate` `v1.6.5 → v1.9.5@b358e` `+` `read_only` `expose` `→` `same` `level` as `electrs`.
 - `Repo file ≠ running code:` `entrypoint.sh` lives *inside* the image — a repo fix needs an image rebuild (`0.6.2`) + pin update before any box sees it. Never assume a merged script is live.
 - `Tor 0.4.9 strictness:` new Tor fails fast on `Unparseable address` when the target hostname has no DNS yet (first boot), then self-heals on restart. Old Tor just started anyway. One scary log line, then `100% Done` — normal.
+- `app_proxy.APP_PORT` ≠ manifest `port` → **tile/auth return uses `APP_PORT`, gateway listens on `port`.** Symptom: the dashboard tile opens `:<APP_PORT>` (another app's host port) while the app works directly on `:<port>`; e.g. Routstr `port: 3066` but `APP_PORT: 8080` sent users to HAVEN Kit (:8080) and 404'd. Fix: make `APP_PORT` (and the container listener) equal the manifest `port`. Commits `805da35`/`8f8de3a`.
 
 ## Incident Log 0.7.39–0.7.48 (what actually happened)
 
