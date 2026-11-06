@@ -59,6 +59,10 @@ services:
 
   electrs:
     image: ghcr.io/madutxo/electrs-liquid:0.6.5@sha256:c3c2adeda65ea650d45c2516f8d3e84127d594652045fb239c04a61483c1a175
+    # Runs as user "0:0" (root) because Umbrel creates volume directories as
+    # root and electrs (uid 1000) cannot chown them at runtime. The entrypoint
+    # drops to `gosu electrs` after fixing /data ownership. Do not change to
+    # non-root without ensuring /data is pre-owned by uid 1000.
     user: "0:0"
     restart: unless-stopped
     security_opt:
@@ -89,6 +93,12 @@ services:
       DAEMON_READ_TIMEOUT: "60"
       DAEMON_WRITE_TIMEOUT: "60"
       DAEMON_CONN_RECYCLE_COOLDOWN: "10"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     command:
       - -v
       - --network

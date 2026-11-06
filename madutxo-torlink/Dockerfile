@@ -79,6 +79,7 @@ ENV HOME=/state/home \
     TORLINK_NO_UTP=1 \
     TORLINK_NO_UPDATE_CHECK=1 \
     TORLINK_STORE_CACHE_SLOTS=0 \
+    TMUX_TMPDIR=/state/tmux \
     TERM=xterm-256color \
     LANG=C.UTF-8
 

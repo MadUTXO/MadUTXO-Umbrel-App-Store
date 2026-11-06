@@ -45,7 +45,7 @@ services:
       - TORLINK_STORE_CACHE_SLOTS=0
       - TORLINK_MAX_DOWNLOADS=3
       - HOME=/state/home
-      - TMUX_TMPDIR=/tmp/tmux
+      - TMUX_TMPDIR=/state/tmux
       - TERM=xterm-256color
       - LANG=C.UTF-8
     volumes:

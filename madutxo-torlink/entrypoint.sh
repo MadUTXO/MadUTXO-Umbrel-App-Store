@@ -4,7 +4,7 @@ set -eu
 STATE="${TORLINK_STATE_DIR:-/state}"
 export TORLINK_STATE_DIR="$STATE"
 export HOME="${HOME:-$STATE/home}"
-export TMUX_TMPDIR="${TMUX_TMPDIR:-/tmp/tmux}"
+export TMUX_TMPDIR="${TMUX_TMPDIR:-/state/tmux}"
 
 mkdir -p "$STATE/config" "$STATE/data" "$HOME" "$TMUX_TMPDIR"
 

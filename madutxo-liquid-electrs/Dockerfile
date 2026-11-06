@@ -34,6 +34,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     libsnappy1v5=1.1.9* \
     gosu=1.14* \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/* \
     && adduser --disabled-password --uid 1000 --home /data electrs
 
