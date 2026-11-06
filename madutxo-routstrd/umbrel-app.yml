@@ -2,6 +2,12 @@ manifestVersion: 1
 id: madutxo-routstrd
 storage:
   dataRoot: data
+environment:
+  - name: ROUTSTRD_ADMIN_NPUB
+    services:
+      - app
+    default: ""
+    note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstr
 version: "0.1.33"
@@ -21,6 +27,11 @@ description: >-
 
 
   Getting started:
+
+  - First start: in the Umbrel dashboard, open this app's settings, then
+    Advanced > Environment variables, and set ROUTSTRD_ADMIN_NPUB to your
+    Nostr public key (npub1...) so you can manage this node from your own
+    devices. Changing it restarts the app.
 
   - Open the app to reach the browser terminal.
 
