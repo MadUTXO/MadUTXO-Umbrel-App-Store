@@ -91,6 +91,7 @@ COPY --from=build /src /app/auth
 # Package configuration.
 COPY entrypoint.sh /entrypoint.sh
 COPY terminal.sh /terminal.sh
+COPY tmux.conf /etc/tmux.conf
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY router/nginx.conf /etc/nginx/nginx.conf
 

@@ -8,6 +8,7 @@ on:
       - 'madutxo-routstrd/Dockerfile'
       - 'madutxo-routstrd/entrypoint.sh'
       - 'madutxo-routstrd/terminal.sh'
+      - 'madutxo-routstrd/tmux.conf'
       - 'madutxo-routstrd/supervisord.conf'
       - 'madutxo-routstrd/router/**'
       - '.github/workflows/build-routstrd.yml'
