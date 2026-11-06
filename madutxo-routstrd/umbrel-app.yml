@@ -7,53 +7,54 @@ environment:
     services:
       - app
     default: ""
-    note: "Optional. Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Leave blank to use only the app's internal identity. Changing this restarts the app."
+    note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstr
 version: "0.1.33"
 tagline: Self-hosted Routstr AI router with a Cashu wallet
 description: >-
-  Run your own Routstr node at home. Routstr routes OpenAI-compatible AI
-  requests to the cheapest available Routstr provider and pays per request from
-  an in-process Cashu (Bitcoin) wallet. Your agents — OpenCode, Hermes, and
-  others — connect to this app's address with an API key you create here.
+  Run your own Routstr node at home and route AI requests across a
+  decentralized network of providers — paying per request from a built-in
+  Cashu (Bitcoin) wallet, with no account and no subscription.
 
 
-  This package runs the official routstrd daemon behind its auth proxy
-  (the "gatekeeper"), plus a browser terminal for management. The daemon and
-  your wallet are never exposed directly; the gatekeeper checks every request.
+  Routstr is an OpenAI-compatible router. Point your agents and tools
+  (OpenCode, Hermes, Claude Code, and anything else that speaks the OpenAI
+  API) at this app, and it picks the cheapest available provider for you.
+  This package runs the official routstrd daemon behind its auth proxy (the
+  "gatekeeper"), plus a browser terminal for management. Your daemon and
+  wallet are never exposed directly — the gatekeeper checks every request.
 
 
   Getting started:
 
-  - Optional: in this app's settings, set ROUTSTRD_ADMIN_NPUB to your Nostr
-    public key (npub1...) so you can manage this node from your own devices.
-    Changing it restarts the app.
+  - First start: in the Umbrel dashboard, open this app's settings, then
+    Advanced > Environment variables, and set ROUTSTRD_ADMIN_NPUB to your
+    Nostr public key (npub1...) so you can manage this node from your own
+    devices. Changing it restarts the app.
 
   - Open the app to reach the browser terminal.
 
-  - Top up the wallet: routstrd receive 2100 (Lightning), or send a Cashu token.
+  - Top up the wallet: run `routstrd receive 2100` for a Lightning invoice, or
+    send a Cashu token.
 
-  - Create an API key for each agent: routstrd clients add -n "My Laptop".
+  - Create an API key for each agent: `routstrd clients add -n "My Laptop"`.
 
   - Point the agent at this app's URL using that key.
 
-  - Run routstrd monitor for a usage dashboard.
+  - Run `routstrd monitor` for a live usage dashboard.
 
 
-  Security notes:
+  Security:
 
-  - API keys can only use the AI. Wallet, provider, and client management
-    require your Nostr identity (npub).
+  - API keys can only make AI requests. Wallet, provider, and client
+    management require your Nostr identity (npub).
 
-  - The model allowlist is enabled, so only the official Routstr 21 models are
-    accepted.
+  - Only the official Routstr 21 models are accepted (the model allowlist is
+    enabled).
 
   - The daemon and wallet stay on the container's loopback interface; only the
-    gatekeeper is reachable.
-
-  - Keep Umbrel login enabled: the browser terminal grants full management
-    access to the node.
+    gatekeeper is reachable from the network.
 releaseNotes: ""
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-routstrd/icon.svg
 developer: Routstr
