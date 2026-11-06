@@ -10,7 +10,7 @@ services:
       PROXY_AUTH_WHITELIST: "/v1/*,/models/*,/health,/ping,/npubs,/clients/*,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/providers,/providers/*"
 
   app:
-    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:f7edda84716330b4bb770b03258ff27488021e2850503ac19b8be10a01e2f596
+    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:67c4ef35a032977783e54a1329d03a173c7c03916b143bff1357d2279f42c141
     user: "1000:1000"
     init: true
     restart: on-failure
