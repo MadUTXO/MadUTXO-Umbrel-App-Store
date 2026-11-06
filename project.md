@@ -80,7 +80,9 @@ Community Umbrel App Store (`MadUTXO/MadUTXO-Umbrel-App-Store`) with 3 apps: `ma
 6. **Commit style:** `type: message` `+` `bump` `version` `0.7.x` `in` `umbrel-app.yml` + `releaseNotes` generic. `git log --oneline` clean like `4rkad`.
 7. **Clean history:** `gh api` `DELETE` `failed` `runs` → `Actions` `only` `success` `like` `4rkad`.
 
-## Final Learns- `Elements 30s idle close` → `electrs` `Mutex<Connection>` `EOF` → `daemon_rpc_conn_max_age 45` + `DAEMON 5/60/60/10` fixes `WARN disconnected`.
+## Final Learns
+- `exports.sh` `exit 0` → **Umbrel deploy aborts silently.** Umbrel *sources* `exports.sh` mid-lifecycle; an `exit` stops the install after the image downloads but before any container is created. Symptom: app shows **Running**, but no container, no `docker-compose.umbreld.yml` / `app-gateway.json`, no `settings.yml` `autoStart`, and only "Failed to read hidden service" in the log. `docker compose config` still passes, so it looks like compose. Diagnosed by deploying a minimal twin app (same image, no `exports.sh`/hooks) — it deployed, isolating the cause. Fix: removed `exports.sh` (`fa4d392`). Never `exit`/`cd` in `exports.sh`.
+- `Elements 30s idle close` → `electrs` `Mutex<Connection>` `EOF` → `daemon_rpc_conn_max_age 45` + `DAEMON 5/60/60/10` fixes `WARN disconnected`.
 - `web` `Tor Loading...` → `baked` `ELECTRS_TOR_ADDRESS` empty + `app_proxy` `302` → `fetch /tor-address` `+` `TOR_DATA_DIR:/tor:ro` `+` `nginx /tor-address`.
 - `USER electrs` `+` `root:root /data` → `Permission denied` `→` `user: "0:0"` `chown` `gosu` `→` `non-root` `runtime`.
 - `app_proxy` no `image` → `Validate compose` must `yq del(.services.app_proxy)`.
