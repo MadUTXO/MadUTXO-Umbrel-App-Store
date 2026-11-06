@@ -55,6 +55,7 @@ description: >-
   - Keep Umbrel login enabled: the browser terminal grants full management
     access to the node.
 releaseNotes: ""
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-routstrd/icon.svg
 developer: Routstr
 website: https://routstr.com
 dependencies: []
