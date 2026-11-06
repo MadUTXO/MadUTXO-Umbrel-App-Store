@@ -1,0 +1,51 @@
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-routstrd_app_1
+      APP_PORT: 8080
+      # The terminal stays behind Umbrel login. API and management paths are
+      # whitelisted so agents and remote NIP-98 clients can reach the gatekeeper,
+      # which does its own key/Nostr authentication. /settings/* and /cooldowns/*
+      # are deliberately NOT whitelisted: the gatekeeper does not restrict them
+      # for Bearer keys, so they stay behind Umbrel login.
+      PROXY_AUTH_WHITELIST: "/v1/*,/models/*,/health,/ping,/npubs,/clients/*,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/providers,/providers/*"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+  app:
+    # Zero digest is the unpublished placeholder; pin the manifest-list digest
+    # after the build workflow publishes the image.
+    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 1m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/lib/nginx
+      - /var/cache/nginx
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    environment:
+      - TZ=${TZ:-UTC}
+      - APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=${APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST}
+    volumes:
+      - ${APP_DATA_DIR}/data:/data

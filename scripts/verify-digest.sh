@@ -72,4 +72,27 @@ echo "torlink image tag: $TORLINK_IMAGE_TAG"
 if [ "$TORLINK_VERSION" != "$TORLINK_IMAGE_TAG" ]; then echo "FAIL: torlink app version and image tag differ"; exit 1; fi
 echo "✓ torlink version matches image tag"
 
+echo "--- routstrd digest ---"
+ROUTSTRD_COMPOSE="$ROOT/madutxo-routstrd/docker-compose.yml"
+ROUTSTRD_APP="$ROOT/madutxo-routstrd/umbrel-app.yml"
+ROUTSTRD_IMAGE=$(grep -E "image: ghcr.io/madutxo/routstrd:" "$ROUTSTRD_COMPOSE" | head -n1 | awk '{print $2}' | tr -d '"')
+echo "routstrd image: $ROUTSTRD_IMAGE"
+case "$ROUTSTRD_IMAGE" in
+  *@sha256:* ) echo "✓ routstrd image pinned" ;;
+  *) echo "FAIL: routstrd image not pinned with @sha256:"; exit 1 ;;
+esac
+if echo "$ROUTSTRD_IMAGE" | grep -q ":latest"; then echo "FAIL: routstrd image uses latest"; exit 1; fi
+echo "✓ routstrd image not latest"
+case "$ROUTSTRD_IMAGE" in
+  *@sha256:0000000000000000000000000000000000000000000000000000000000000000)
+    echo "FAIL: routstrd image uses the unpublished placeholder digest; publish the image and pin the real manifest-list digest";
+    exit 1 ;;
+esac
+ROUTSTRD_VERSION=$(grep -E '^version: "' "$ROUTSTRD_APP" | head -n1 | cut -d'"' -f2)
+ROUTSTRD_IMAGE_TAG=$(echo "$ROUTSTRD_IMAGE" | sed -n 's/.*routstrd:\(.*\)@.*/\1/p')
+echo "routstrd app version: $ROUTSTRD_VERSION"
+echo "routstrd image tag: $ROUTSTRD_IMAGE_TAG"
+if [ "$ROUTSTRD_VERSION" != "$ROUTSTRD_IMAGE_TAG" ]; then echo "FAIL: routstrd app version and image tag differ"; exit 1; fi
+echo "✓ routstrd version matches image tag"
+
 echo "All digest format checks passed"

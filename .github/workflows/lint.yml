@@ -7,6 +7,7 @@ on:
       - 'madutxo-liquid-electrs/**'
       - 'madutxo-libretranslate/**'
       - 'madutxo-torlink/**'
+      - 'madutxo-routstrd/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
@@ -16,6 +17,7 @@ on:
       - 'madutxo-liquid-electrs/**'
       - 'madutxo-libretranslate/**'
       - 'madutxo-torlink/**'
+      - 'madutxo-routstrd/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
@@ -47,3 +49,6 @@ jobs:
           yq eval 'del(.services.app_proxy)' madutxo-torlink/docker-compose.yml > /tmp/compose.torlink.yml
           APP_DATA_DIR=/tmp UMBREL_ROOT=/tmp docker compose -f /tmp/compose.torlink.yml config >/dev/null
           echo "torlink compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-routstrd/docker-compose.yml > /tmp/compose.routstrd.yml
+          APP_DATA_DIR=/tmp APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=true docker compose -f /tmp/compose.routstrd.yml config >/dev/null
+          echo "routstrd compose valid"

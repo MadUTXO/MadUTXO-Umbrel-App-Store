@@ -145,6 +145,62 @@ if ! grep -q "STORAGE_DOWNLOADS" "$TORLINK_APP"; then echo "FAIL: torlink missin
 if ! grep -q "dataRoot: data" "$TORLINK_APP"; then echo "FAIL: torlink missing storage.dataRoot"; exit 1; fi
 echo "✓ torlink downloads permission and storage root"
 
+echo "--- routstrd checks ---"
+ROUTSTRD_COMPOSE="$ROOT/madutxo-routstrd/docker-compose.yml"
+ROUTSTRD_APP="$ROOT/madutxo-routstrd/umbrel-app.yml"
+echo "Lint: checking $ROUTSTRD_COMPOSE..."
+if command -v yq >/dev/null 2>&1; then
+  if yq eval '.services[].image | select(. != null) | select(test("@sha256:")|not)' "$ROUTSTRD_COMPOSE" | grep -v "null" | grep -q .; then
+    echo "FAIL: routstrd unpinned image"
+    yq eval '.services[].image' "$ROUTSTRD_COMPOSE"
+    exit 1
+  fi
+  echo "✓ routstrd images pinned (yq)"
+  for svc in app app_proxy; do
+    if ! yq eval ".services.$svc.security_opt[] | select(. == \"no-new-privileges:true\")" "$ROUTSTRD_COMPOSE" | grep -q "no-new-privileges"; then
+      echo "FAIL: routstrd $svc missing no-new-privileges"
+      exit 1
+    fi
+  done
+  echo "✓ routstrd no-new-privileges present"
+  if [ "$(yq eval '.services.app.read_only' "$ROUTSTRD_COMPOSE")" != "true" ]; then
+    echo "FAIL: routstrd missing read_only:true"
+    exit 1
+  fi
+  echo "✓ routstrd read_only"
+  if ! yq eval '.services.app.cap_drop[] | select(. == "ALL")' "$ROUTSTRD_COMPOSE" | grep -q "ALL"; then
+    echo "FAIL: routstrd missing cap_drop: ALL"
+    exit 1
+  fi
+  echo "✓ routstrd cap_drop ALL"
+  if [ "$(yq eval '.services.app.user' "$ROUTSTRD_COMPOSE" | tr -d '"')" != "1000:1000" ]; then
+    echo "FAIL: routstrd must run as 1000:1000"
+    exit 1
+  fi
+  echo "✓ routstrd runs as 1000:1000"
+else
+  if grep -E "image:.*:[^ ]+" "$ROUTSTRD_COMPOSE" | grep -v "@sha256:" | grep -v "^#"; then echo "FAIL: routstrd unpinned"; exit 1; fi
+  echo "✓ routstrd images pinned"
+  for svc in app app_proxy; do
+    if ! grep -A30 "  $svc:" "$ROUTSTRD_COMPOSE" | grep -q "no-new-privileges:true"; then echo "FAIL: routstrd $svc missing no-new-privileges"; exit 1; fi
+  done
+  echo "✓ routstrd no-new-privileges present"
+  if ! grep -A30 "  app:" "$ROUTSTRD_COMPOSE" | grep -q "read_only: true"; then echo "FAIL: routstrd missing read_only:true"; exit 1; fi
+  echo "✓ routstrd read_only"
+  if ! grep -A30 "  app:" "$ROUTSTRD_COMPOSE" | grep -q -- "- ALL"; then echo "FAIL: routstrd missing cap_drop: ALL"; exit 1; fi
+  echo "✓ routstrd cap_drop ALL"
+fi
+if grep -q "privileged: true" "$ROUTSTRD_COMPOSE"; then echo "FAIL: routstrd privileged"; exit 1; fi
+echo "✓ routstrd No privileged"
+if grep -q "docker.sock" "$ROUTSTRD_COMPOSE"; then echo "FAIL: routstrd docker.sock mount"; exit 1; fi
+echo "✓ routstrd No docker.sock"
+if grep -Eq '^[[:space:]]+ports:' "$ROUTSTRD_COMPOSE"; then echo "FAIL: routstrd publishes a host port"; exit 1; fi
+echo "✓ routstrd no host ports"
+if ! grep -q "PROXY_AUTH_WHITELIST" "$ROUTSTRD_COMPOSE"; then echo "FAIL: routstrd missing PROXY_AUTH_WHITELIST"; exit 1; fi
+echo "✓ routstrd API whitelist present"
+if ! grep -q "dataRoot: data" "$ROUTSTRD_APP"; then echo "FAIL: routstrd missing storage.dataRoot"; exit 1; fi
+echo "✓ routstrd storage root"
+
 echo "All lint checks passed"
 # Historical regression tests (informational, not failing)
 echo "--- Historical checks (should fail on old configs) ---"

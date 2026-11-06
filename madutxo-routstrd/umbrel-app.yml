@@ -1,0 +1,69 @@
+manifestVersion: 1
+id: madutxo-routstrd
+storage:
+  dataRoot: data
+environment:
+  - name: ROUTSTRD_ADMIN_NPUB
+    services:
+      - app
+    default: ""
+    note: "Optional. Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Leave blank to use only the app's internal identity. Changing this restarts the app."
+category: ai
+name: Routstr
+version: "0.1.33"
+tagline: Self-hosted Routstr AI router with a Cashu wallet
+description: >-
+  Run your own Routstr node at home. Routstr routes OpenAI-compatible AI
+  requests to the cheapest available Routstr provider and pays per request from
+  an in-process Cashu (Bitcoin) wallet. Your agents — OpenCode, Hermes, and
+  others — connect to this app's address with an API key you create here.
+
+
+  This package runs the official routstrd daemon behind its auth proxy
+  (the "gatekeeper"), plus a browser terminal for management. The daemon and
+  your wallet are never exposed directly; the gatekeeper checks every request.
+
+
+  Getting started:
+
+  - Optional: in this app's settings, set ROUTSTRD_ADMIN_NPUB to your Nostr
+    public key (npub1...) so you can manage this node from your own devices.
+    Changing it restarts the app.
+
+  - Open the app to reach the browser terminal.
+
+  - Top up the wallet: routstrd receive 2100 (Lightning), or send a Cashu token.
+
+  - Create an API key for each agent: routstrd clients add -n "My Laptop".
+
+  - Point the agent at this app's URL using that key.
+
+  - Run routstrd monitor for a usage dashboard.
+
+
+  Security notes:
+
+  - API keys can only use the AI. Wallet, provider, and client management
+    require your Nostr identity (npub).
+
+  - The model allowlist is enabled, so only the official Routstr 21 models are
+    accepted.
+
+  - The daemon and wallet stay on the container's loopback interface; only the
+    gatekeeper is reachable.
+
+  - Keep Umbrel login enabled: the browser terminal grants full management
+    access to the node.
+releaseNotes: ""
+developer: Routstr
+website: https://routstr.com
+dependencies: []
+repo: https://github.com/Routstr/routstrd-remote
+support: https://github.com/Routstr/routstrd-remote/issues
+port: 3066
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: ""
