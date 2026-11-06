@@ -1,0 +1,22 @@
+manifestVersion: 1
+id: madutxo-routstrd-test
+category: ai
+name: Routstr Test
+version: "0.1.33"
+tagline: Minimal Routstr app (diagnostic)
+description: >-
+  Minimal diagnostic package for the Routstr app. Not for regular use.
+releaseNotes: ""
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-routstrd/icon.svg
+developer: Routstr
+website: https://routstr.com
+dependencies: []
+repo: https://github.com/Routstr/routstrd-remote
+support: https://github.com/Routstr/routstrd-remote/issues
+port: 3067
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: ""

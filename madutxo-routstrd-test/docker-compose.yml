@@ -1,0 +1,13 @@
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-routstrd-test_app_1
+      APP_PORT: 8080
+
+  app:
+    image: ghcr.io/madutxo/routstrd:0.1.33@sha256:f7edda84716330b4bb770b03258ff27488021e2850503ac19b8be10a01e2f596
+    user: "1000:1000"
+    expose:
+      - "8080"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
