@@ -1,0 +1,39 @@
+#!/bin/sh
+set -eu
+
+# Runs on the host before every start and after every update. Umbrel creates
+# app-data directories as root; electrs now runs as uid 1000, so hand it
+# ownership here instead of doing a recursive walk inside the container.
+# Guarded by a uid check: a normal start does nothing, so the multi-GB index is
+# never walked. Files that umbreld itself rewrites (the password file) are
+# chowned by exports.sh, which runs later, inside `compose up`.
+STATE="${APP_DATA_DIR:?APP_DATA_DIR is not set}/data/electrs"
+
+mkdir -p "$STATE"
+if [ "$(stat -c %u "$STATE")" != "1000" ]; then
+    chown -R 1000:1000 "$STATE"
+fi
+
+# Umbrel's update path copies hooks/ but not web/ or the root icon, so the UI
+# assets shipped in the app package would go stale after an update. The
+# canonical copies live under hooks/assets/ (which IS copied) and are synced
+# here, before `compose up`, so the web container always mounts the current
+# ones. A copy failure only leaves the previous UI in place, never the data.
+WEB_DIR="${APP_DATA_DIR:?APP_DATA_DIR is not set}/web"
+ASSETS="${APP_DATA_DIR}/hooks/assets"
+if [ -d "$ASSETS" ]; then
+    mkdir -p "$WEB_DIR"
+    for pair in \
+        "index.html:$WEB_DIR/index.html" \
+        "umbrel-qr-icon.svg:$WEB_DIR/umbrel-qr-icon.svg" \
+        "icon.svg:$APP_DATA_DIR/icon.svg"; do
+        src="$ASSETS/${pair%%:*}"
+        dst="${pair#*:}"
+        [ -f "$src" ] || continue
+        if ! cmp -s "$src" "$dst"; then
+            cp "$src" "$dst"
+            chmod 0644 "$dst" 2>/dev/null || true
+            chown 1000:1000 "$dst" 2>/dev/null || true
+        fi
+    done
+fi

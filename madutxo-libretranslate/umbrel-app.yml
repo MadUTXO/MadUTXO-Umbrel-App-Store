@@ -1,0 +1,58 @@
+manifestVersion: 1
+id: madutxo-libretranslate
+category: tools
+name: LibreTranslate
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-libretranslate/icon.png
+version: "1.9.8"
+tagline: Free and Open Source Machine Translation API
+description: >-
+  LibreTranslate is a free and open source machine translation API.
+  It allows you to run your own self-hosted translation service
+  without relying on third-party services.
+
+
+  Features:
+  - Supports 30+ languages
+  - Self-hosted, privacy-focused
+  - Easy to set up and use
+  - Web interface for translation
+developer: LibreTranslate
+website: https://libretranslate.com
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-libretranslate
+dependencies: []
+repo: https://github.com/LibreTranslate/LibreTranslate
+support: https://github.com/LibreTranslate/LibreTranslate/issues
+port: 5000
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+releaseNotes: >-
+  1.9.8:
+  - Update the base system packages and the web framework library used for
+    file uploads, clearing most of the known critical vulnerabilities in the
+    previous image.
+  - The language models are downloaded on first start, as before, so you can
+    change which languages are loaded. They are kept on the app's data
+    volume and are not downloaded again after a restart.
+  - No changes to how the app is used; your settings and downloaded models
+    are kept when you update.
+
+  1.9.7:
+  - This release was withdrawn before general use: the image included the
+    language models and was far larger than intended, which made installs
+    very slow. 1.9.8 replaces it with the same security fixes and no baked
+    models.
+
+  1.9.6:
+  - Update to LibreTranslate 1.9.6 (Turkish UI).
+  - Fix the app failing to start on a read-only rootfs: Argos Translate's
+    data, config and cache directories are now stored on the app's data
+    volume instead of the image's read-only home directory, so language
+    models persist across restarts instead of being re-downloaded.
+  - Require the Umbrel login to open the app. It was previously reachable
+    by anyone on the LAN or via its Tor address with no authentication.
+  - Run two worker processes instead of four, and add memory and PID
+    limits, so translation load cannot exhaust host memory.
+  - Enable request, character and batch rate limits.

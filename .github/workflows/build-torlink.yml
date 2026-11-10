@@ -1,0 +1,91 @@
+name: Build torlink
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'madutxo-torlink/Dockerfile'
+      - 'madutxo-torlink/entrypoint.sh'
+      - 'madutxo-torlink/torlink-memory.patch'
+      - 'madutxo-torlink/torlink-bg-seed.patch'
+      - 'madutxo-torlink/torlink-deps.patch'
+      - 'madutxo-torlink/torlink-test-isolation.patch'
+      - 'madutxo-torlink/hooks/**'
+      - '.github/workflows/build-torlink.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push 1.11.7
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ./madutxo-torlink
+          file: ./madutxo-torlink/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/madutxo/torlink:1.11.7
+          labels: |
+            org.opencontainers.image.title=torlink
+            org.opencontainers.image.source=https://github.com/baairon/torlink
+            org.opencontainers.image.revision=394b0b662b0ab2b390846d98aaf56031f6b8dcad
+            org.opencontainers.image.version=1.11.7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        # Supplemental: its tool download from GitHub releases is occasionally
+        # unavailable (HTTP 000/504). Must not fail an otherwise-good release.
+        continue-on-error: true
+        with:
+          image: ghcr.io/madutxo/torlink:1.11.7
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: torlink-sbom
+          path: sbom*
+          if-no-files-found: ignore
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        # Supplemental: non-blocking, same rationale as the SBOM step.
+        continue-on-error: true
+        with:
+          image-ref: 'ghcr.io/madutxo/torlink:1.11.7'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: torlink-trivy
+          path: trivy-results.sarif
+          if-no-files-found: ignore
+
+# Touched to force workflow re-registration after the repo recreate.

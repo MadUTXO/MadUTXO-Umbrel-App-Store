@@ -1,0 +1,3 @@
+HiddenServiceDir /data/app-madutxo-liquid-electrs/main
+HiddenServicePort 60601 madutxo-liquid-electrs_electrs_1:60601
+

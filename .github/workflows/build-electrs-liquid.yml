@@ -1,0 +1,81 @@
+name: Build electrs-liquid
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'madutxo-liquid-electrs/Dockerfile'
+      - 'madutxo-liquid-electrs/entrypoint.sh'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push 0.6.10
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ./madutxo-liquid-electrs
+          file: ./madutxo-liquid-electrs/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/madutxo/electrs-liquid:0.6.10
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Attach a build provenance attestation (SLSA) so the published image
+          # can be traced to this workflow/commit. Strict CVE gating lives in
+          # scan-electrs-liquid.yml.
+          provenance: true
+
+      - name: Report image digest
+        run: echo "electrs-liquid:0.6.10 digest = ${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        with:
+          image: ghcr.io/madutxo/electrs-liquid:0.6.10
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: electrs-liquid-sbom
+          path: sbom*
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: 'ghcr.io/madutxo/electrs-liquid:0.6.10'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          trivyignores: '.trivyignore'
+          exit-code: '0'
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: electrs-liquid-trivy
+          path: trivy-results.sarif
+
+# Touched to force workflow re-registration after the repo recreate.

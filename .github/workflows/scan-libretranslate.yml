@@ -1,0 +1,65 @@
+name: Scan libretranslate (scheduled)
+
+# The package pins the fork image (ghcr.io/madutxo/libretranslate) by digest, so
+# this job re-scans that exact digest on a cron and FAILS on any CRITICAL not in
+# the audited register. The register (.trivyignore.libretranslate) lists only
+# CRITICALs the audit proved unreachable in this package; anything new reddens
+# the job, which is the point.
+#
+# The fork is built by .github/workflows/build-libretranslate.yml (baked models,
+# Werkzeug 3.0.6, refreshed Debian base). That build also emits its own Trivy
+# SARIF; this job is the independent, scheduled re-check against the exact
+# digest the package installs.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      # The image-ref below is hardcoded so the scan target is auditable, but a
+      # compose bump would otherwise leave it scanning a stale digest. Fail
+      # instead, so the two are always bumped together.
+      - name: Verify scan target matches the pinned compose image
+        run: |
+          pinned=$(grep -E '^[[:space:]]+image:' madutxo-libretranslate/docker-compose.yml | awk '{print $2}' | head -n1)
+          scanned=$(grep -E "^[[:space:]]+image-ref: '" .github/workflows/scan-libretranslate.yml | sed -E "s/^[[:space:]]+image-ref: '([^']+)'.*/\1/")
+          echo "compose: $pinned"
+          echo "scan:    $scanned"
+          if [ "$pinned" != "$scanned" ]; then
+            echo "FAIL: scan target drifted from madutxo-libretranslate/docker-compose.yml"
+            exit 1
+          fi
+          echo "OK: scan target matches the pinned image"
+
+      - name: Trivy scan (fail on unregistered CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: 'ghcr.io/madutxo/libretranslate:1.9.6@sha256:c7bbef4d3f02740640bdaa2f246418f8e1eb99a1de953880c2be5f38dbde7590'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: false
+          trivyignores: '.trivyignore.libretranslate'
+          exit-code: '1'
+
+      - name: Generate SBOM (best effort)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        continue-on-error: true
+        with:
+          image: 'ghcr.io/madutxo/libretranslate:1.9.6@sha256:c7bbef4d3f02740640bdaa2f246418f8e1eb99a1de953880c2be5f38dbde7590'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: libretranslate-sbom-scheduled
+          path: sbom*
+          if-no-files-found: ignore

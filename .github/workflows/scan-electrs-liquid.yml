@@ -1,0 +1,59 @@
+name: Scan electrs-liquid (scheduled)
+
+# The build workflow runs Trivy/SBOM best-effort (exit-code 0) so a transient
+# tool download cannot redden a release. This scheduled job is the strict
+# complement: it re-scans the already-published, digest-pinned image on a cron
+# and FAILS on any CRITICAL finding, so drift is surfaced.
+#
+# trivyignores is used here for the same reason as torlink: the single
+# repo-wide ignore is CVE-2023-45853 (zlib/minizip, will_not_fix). electrs does
+# not unpack zip archives, so the vulnerable minizip entry points are
+# unreachable. Do not restate a measured count here — 0.6.9 was flagged with
+# three CRITICAL perl-base CVEs (fixed in 0.6.10) while this comment still
+# claimed "0 other CRITICAL findings". The scan result is the only authority.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Trivy scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: 'ghcr.io/madutxo/electrs-liquid:0.6.10@sha256:e6fdee53a05dc69518aca82b6c02114888f50f26218da8b55a64cb5d7f8ab37d'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: false
+          trivyignores: '.trivyignore'
+          exit-code: '1'
+
+      - name: Generate SBOM (best effort)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        continue-on-error: true
+        with:
+          image: 'ghcr.io/madutxo/electrs-liquid:0.6.10@sha256:e6fdee53a05dc69518aca82b6c02114888f50f26218da8b55a64cb5d7f8ab37d'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: electrs-liquid-sbom-scheduled
+          path: sbom*
+          if-no-files-found: ignore

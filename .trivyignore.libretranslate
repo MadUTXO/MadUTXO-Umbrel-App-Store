@@ -1,0 +1,36 @@
+# Trivy ignore register for madutxo-libretranslate.
+#
+# This is a DEBT REGISTER, not a dismissal. Every entry below is a CRITICAL that
+# the fork image (ghcr.io/madutxo/libretranslate:1.9.6) carries and that the
+# audit proved unreachable in THIS package (see
+# reports/madutxo-libretranslate-audit-2026-11-08.md, LT-08/LT-09). The scheduled
+# scan is strict on everything not listed here, so a new CVE fails it.
+#
+# The fork image's apt upgrade and Werkzeug 3.0.6 cleared most of the register
+# (perl-base, openssl/libssl3, gnutls), taking it from 10 IDs to these 4.
+#
+# CAUTION: the build workflow's SARIF (run 42631844155) listed only 3 CRITICALs
+# and OMITTED CVE-2023-45853, which the scheduled scan of the same digest then
+# flagged. The build-time SARIF is therefore NOT an authoritative superset — the
+# scheduled scan is. Re-derive this list from the scheduled scan, not the build.
+
+# waitress is not the HTTP server. entrypoint.sh runs `gunicorn ... 'wsgi:app()'`
+# and the waitress branch in main.py is never entered. LT-08. No fixed waitress
+# can be installed without changing the app's own requirements.
+CVE-2024-49768
+
+# libsqlite3-0: reachable only if the API-keys or suggestions DB is enabled.
+# Both are off (LT_API_KEYS=false, suggestions off); db/ is a tmpfs otherwise.
+# Debian 12 ships no fixed libsqlite3-0.
+CVE-2025-7458
+
+# certifi's CA bundle is only exercised by `requests`, and the only requests
+# callers are the localhost healthcheck and api_keys.py's RemoteDatabase, which
+# is unused unless LT_API_KEYS_REMOTE is set. Model downloads use stdlib
+# urllib.request against the system CA store, not certifi. LT-09. The fix is a
+# certifi release newer than the one LibreTranslate 1.9.6 pins.
+GHSA-6q48-6c7w-9gw2
+
+# zlib1g: Debian marks this will_not_fix and ships no fixed package. The
+# vulnerable minizip entry points are absent (no libminizip in the image).
+CVE-2023-45853

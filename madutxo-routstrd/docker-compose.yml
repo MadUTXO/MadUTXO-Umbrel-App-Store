@@ -1,0 +1,45 @@
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-routstrd_app_1
+      APP_PORT: 3066
+      # API + management paths bypass Umbrel login so agents (API keys) and
+      # remote NIP-98 clients can reach the gatekeeper, which authenticates.
+      # /settings/* and /cooldowns/* are intentionally excluded (the gatekeeper
+      # does not restrict them for Bearer keys).
+      PROXY_AUTH_WHITELIST: "/v1/*,/models,/models/*,/health,/ping,/npubs,/clients,/clients/*,/usage,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/refund/xcashu,/providers,/providers/*"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+  app:
+    image: ghcr.io/madutxo/routstrd:0.5.0@sha256:9792950250166de011ede9edd7665ed4cf7f85a55908bf1959637fedc5b004ea
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 90s
+    mem_limit: "2g"
+    pids_limit: 512
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    expose:
+      - "3066"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3066/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    volumes:
+      - ${APP_DATA_DIR}/data:/data

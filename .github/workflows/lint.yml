@@ -1,0 +1,58 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'madutxo-liquid-electrs/**'
+      - 'madutxo-libretranslate/**'
+      - 'madutxo-torlink/**'
+      - 'madutxo-routstrd/**'
+      - 'madutxo-liquid-electrs/Dockerfile'
+      - 'scripts/lint.sh'
+      - 'scripts/verify-digest.sh'
+      - '.github/workflows/lint.yml'
+  pull_request:
+    paths:
+      - 'madutxo-liquid-electrs/**'
+      - 'madutxo-libretranslate/**'
+      - 'madutxo-torlink/**'
+      - 'madutxo-routstrd/**'
+      - 'madutxo-liquid-electrs/Dockerfile'
+      - 'scripts/lint.sh'
+      - 'scripts/verify-digest.sh'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          # Full history so the onion-address check can scan every commit.
+          fetch-depth: 0
+      - name: Install yq
+        run: |
+          wget -qO /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          echo "a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7  /tmp/yq" | sha256sum -c -
+          sudo install -m 0755 /tmp/yq /usr/local/bin/yq
+          yq --version
+      - name: Run security lint
+        run: bash scripts/lint.sh
+      - name: Verify digest pin
+        run: bash scripts/verify-digest.sh
+      - name: Validate compose
+        run: |
+          yq eval 'del(.services.app_proxy)' madutxo-liquid-electrs/docker-compose.yml > /tmp/compose.test.yml
+          APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp APP_VERSION=1.0.0 APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE=dummy.onion APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS=dummy docker compose -f /tmp/compose.test.yml config >/dev/null
+          echo "electrs compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-libretranslate/docker-compose.yml > /tmp/compose.libre.yml
+          APP_DATA_DIR=/tmp docker compose -f /tmp/compose.libre.yml config >/dev/null
+          echo "libretranslate compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-torlink/docker-compose.yml > /tmp/compose.torlink.yml
+          APP_DATA_DIR=/tmp UMBREL_ROOT=/tmp docker compose -f /tmp/compose.torlink.yml config >/dev/null
+          echo "torlink compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-routstrd/docker-compose.yml > /tmp/compose.routstrd.yml
+          APP_DATA_DIR=/tmp APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=true docker compose -f /tmp/compose.routstrd.yml config >/dev/null
+          echo "routstrd compose valid"

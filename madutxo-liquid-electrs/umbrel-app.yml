@@ -1,0 +1,73 @@
+manifestVersion: 1
+id: madutxo-liquid-electrs
+category: bitcoin
+name: Electrs Liquid
+version: "1.0.0"
+tagline: Personal Electrum server for the Liquid Network
+description: >-
+  Run your personal Electrum server for the Liquid Network and connect your
+  wallet to it instead of relying on Blockstream's public servers.
+
+
+  Without your own server, your wallet queries Blockstream's infrastructure
+  to check balances and transactions — leaking which addresses are yours.
+  Even though Liquid uses Confidential Transactions (hidden amounts and assets),
+  the transaction graph is still visible. Input ownership heuristics still apply,
+  and swaps used to enter/exit Liquid can correlate amounts, origin, and destination.
+
+
+  With Electrs Liquid, all wallet queries stay local. Nobody can build a profile
+  of your Liquid activity.
+
+
+  NOTE - Requires the Elements Core app to be installed and synced. Wait until Electrs
+  shows Running and a block height before connecting a wallet.
+
+
+  NOTE - Port 60601 is reachable on your local network, without encryption or
+  authentication (Electrum is not used with TLS here). Use it only on a trusted
+  LAN and never forward it from your router. For use away from home, connect over
+  the Tor address shown in this app.
+
+
+  - How to use it with SideSwap -
+
+  SideSwap can use your node for balances, PEG-IN/OUT and L-BTC to L-USDT swaps.
+
+  1. Open this app in Umbrel and note the address shown (local or Tor)
+
+  2. In SideSwap open Settings > Network access > Personal Electrum Server. Set Host to your Liquid-electrs address without the port, then set Port to 60601 (TLS off). Save and restart SideSwap.
+
+  3. Away from home on Android, you need Orbot to reach the onion address. Install Orbot from Zapstore or Obtainium and turn on VPN mode (Orbot runs a proxy at 127.0.0.1:9050). In SideSwap open Settings > Network access > Proxy. Toggle Use proxy ON, Host 127.0.0.1, Port 9050.
+
+
+releaseNotes: >-
+  First production release.
+
+  A personal Electrum server for the Liquid Network. Connect SideSwap or any
+  Electrum wallet to your own Umbrel instead of a public server, so your wallet
+  queries stay on your node.
+
+  - Electrum server on port 60601 for your local network, and over Tor when
+    you are away from home.
+
+  - Status page showing sync height, version and the address to connect to.
+
+  - Requires the Elements Core app, installed and fully synced.
+
+  No index, configuration or memory changes. Your synced index is reused and
+  indexing continues from where it left off.
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
+developer: Blockstream
+website: https://github.com/Blockstream
+dependencies:
+  - elements
+repo: https://github.com/Blockstream/electrs
+support: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/issues
+port: 3062
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-liquid-electrs

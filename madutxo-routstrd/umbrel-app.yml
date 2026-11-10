@@ -1,0 +1,43 @@
+manifestVersion: 1
+id: madutxo-routstrd
+storage:
+  dataRoot: data
+environment:
+  - name: ROUTSTRD_ADMIN_NPUB
+    services:
+      - app
+    default: ""
+    note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
+category: ai
+name: Routstrd Remote
+version: "0.5.0"
+tagline: Self-hosted Routstr AI router with a Cashu wallet
+description: >-
+  Routstrd Remote is the official Dockerized Routstrd instance for teams. It runs
+  the routstrd AI router behind its auth proxy (the gatekeeper), plus a browser
+  terminal for management. Route AI requests across a decentralized network of
+  providers — paying per request from a built-in Cashu (Bitcoin) wallet, with no
+  account and no subscription.
+
+  
+  ⚠️ WARNING: Uninstalling this app deletes all app data, including your wallet,
+  recovery phrase (mnemonic), keys, and funds. Back up your data before
+  uninstalling. This action cannot be undone.
+  
+releaseNotes: >-
+  0.5.0:
+
+  - First production release.
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-routstrd/icon.svg
+developer: Routstr
+website: https://routstr.com
+dependencies: []
+repo: https://github.com/Routstr/routstrd-remote
+support: https://github.com/Routstr/routstrd-remote/issues
+port: 3066
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: ""

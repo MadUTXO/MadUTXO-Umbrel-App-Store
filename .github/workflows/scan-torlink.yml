@@ -1,0 +1,54 @@
+name: Scan torlink (scheduled)
+
+# The build workflow runs Trivy/SBOM best-effort (continue-on-error) so a
+# transient tool download cannot redden a release. This scheduled job is the
+# strict complement: it re-scans the already-published, digest-pinned image
+# on a cron and FAILS on any CRITICAL finding, so drift is surfaced.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Trivy scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: 'ghcr.io/madutxo/torlink:1.11.7@sha256:34983c7bf88ea11e41166f296a92383a33b80bb7f6e91735b9586f5d5ef8afcb'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: false
+          trivyignores: '.trivyignore'
+          exit-code: '1'
+
+      - name: Generate SBOM (best effort)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        continue-on-error: true
+        with:
+          image: 'ghcr.io/madutxo/torlink:1.11.7@sha256:34983c7bf88ea11e41166f296a92383a33b80bb7f6e91735b9586f5d5ef8afcb'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: torlink-sbom-scheduled
+          path: sbom*
+          if-no-files-found: ignore
+
+# Touched to force workflow re-registration after the repo recreate.

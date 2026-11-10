@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+
+STATE="${APP_DATA_DIR:?APP_DATA_DIR is not set}/data"
+
+mkdir -p "$STATE"
+chown -R 1000:1000 "$STATE"
+
+# Wallet material (coco.db), the recovery phrase, and integration configs are
+# created with default perms. Keep them owner-only. This runs on every start
+# and on Update, so existing installs are tightened in place.
+for _dir in "$STATE/routstrd" "$STATE/home"; do
+    if [ -d "$_dir" ]; then
+        chmod -R go-rwx "$_dir" || true
+    fi
+done
+
+# Bound persistent logs and shell history so they do not grow without limit in
+# app-data (and therefore in Umbrel backups). Wallet material and configs are
+# never touched. This runs on every start and on Update.
+RETENTION_DAYS=14
+for _logdir in "$STATE/routstrd/logs" "$STATE/routstrd/coco-logs"; do
+    if [ -d "$_logdir" ]; then
+        find "$_logdir" -type f -mtime +"$RETENTION_DAYS" -exec rm -f {} \; 2>/dev/null || true
+    fi
+done
+
+_hist="$STATE/home/.bash_history"
+if [ -f "$_hist" ]; then
+    _tmp="${_hist}.tmp"
+    if tail -n 2000 "$_hist" > "$_tmp" 2>/dev/null; then
+        chown 1000:1000 "$_tmp" 2>/dev/null || true
+        chmod 600 "$_tmp" 2>/dev/null || true
+        mv "$_tmp" "$_hist" 2>/dev/null || rm -f "$_tmp"
+    else
+        rm -f "$_tmp"
+    fi
+fi
