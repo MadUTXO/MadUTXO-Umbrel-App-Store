@@ -33,9 +33,14 @@ services:
       - SETUID
     read_only: true
     tmpfs:
-      - /tmp
-      - /run
-      - /app/db:uid=1000,gid=1000,mode=0755
+      # Bound the RAM-backed scratch space: an oversized /translate_file body or
+      # a runaway worker must not exhaust the container's memory budget (backed
+      # by host RAM). 512 MB is generous for normal translation; /app/db holds
+      # only the optional API-key/suggestions databases, which this package
+      # leaves off.
+      - /tmp:size=512m
+      - /run:size=16m
+      - /app/db:uid=1000,gid=1000,mode=0755,size=64m
     expose:
       - "5000"
     healthcheck:

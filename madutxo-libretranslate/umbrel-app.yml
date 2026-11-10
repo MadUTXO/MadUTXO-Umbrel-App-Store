@@ -3,7 +3,7 @@ id: madutxo-libretranslate
 category: tools
 name: LibreTranslate
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-libretranslate/icon.png
-version: "1.9.8"
+version: "1.9.9"
 tagline: Free and Open Source Machine Translation API
 description: >-
   LibreTranslate is a free and open source machine translation API.
@@ -16,6 +16,11 @@ description: >-
   - Self-hosted, privacy-focused
   - Easy to set up and use
   - Web interface for translation
+
+  Network: on first start the app downloads its language models from
+  third-party model hosts. That reveals your IP and the configured language
+  set, and the models are not integrity-pinned. They are stored on the app's
+  data volume and are not downloaded again after a restart.
 developer: LibreTranslate
 website: https://libretranslate.com
 submitter: MadUTXO
@@ -29,6 +34,13 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 releaseNotes: >-
+  1.9.9:
+  - Clarify in the app description that the language models are downloaded
+    from third-party model hosts on first start, so those hosts see your IP
+    and the configured language set, and the models are not integrity-pinned.
+  - No functional change: the image and the downloaded language models are
+    unchanged.
+
   1.9.8:
   - Update the base system packages and the web framework library used for
     file uploads, clearing most of the known critical vulnerabilities in the
