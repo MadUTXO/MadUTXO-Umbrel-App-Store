@@ -43,6 +43,10 @@ cat <<'BANNER'
     Shift+left-drag                         select for the browser clipboard
     Ctrl+Shift+C / Ctrl+Shift+V             copy / paste (OS clipboard)
 
+  Privacy:
+    The daemon checks the npm registry for updates every 6 hours. To disable:
+    routstrd config set updateCheck false
+
   Wallet recovery phrase (first run only):
     cat /data/routstrd/mnemonic.txt          view it, write it down offline
     rm  /data/routstrd/mnemonic.txt          delete it after writing it down

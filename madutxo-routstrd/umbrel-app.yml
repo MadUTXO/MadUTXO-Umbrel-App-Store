@@ -23,6 +23,10 @@ description: >-
   ⚠️ WARNING: Uninstalling this app deletes all app data, including your wallet,
   recovery phrase (mnemonic), keys, and funds. Back up your data before
   uninstalling. This action cannot be undone.
+
+  Backups: Umbrel app-data backups include the wallet database, the recovery
+  phrase (mnemonic.txt) and integration API keys. Keep backups private and
+  treat them like the wallet itself.
   
 releaseNotes: >-
   0.5.0:
