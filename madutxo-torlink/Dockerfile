@@ -48,7 +48,8 @@ RUN case "${TARGETARCH}" in \
 FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d AS runtime
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates tmux \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates nginx tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # The app runs only `node`; npm/npx/corepack are unused and their bundled
@@ -63,6 +64,9 @@ COPY --from=build /src/dist ./dist
 COPY --from=build /src/node_modules ./node_modules
 COPY --from=build /usr/local/bin/ttyd /usr/local/bin/ttyd
 COPY entrypoint.sh /entrypoint.sh
+# Source-IP filter in front of ttyd: only Umbrel's host gateway may reach the
+# writable terminal; co-resident app containers on 10.21.0.0/16 are refused.
+COPY router/nginx.conf /etc/nginx/nginx.conf
 
 RUN chmod 0755 /entrypoint.sh \
     && mkdir -p /state /downloads \

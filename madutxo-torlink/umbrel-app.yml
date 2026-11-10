@@ -18,9 +18,12 @@ description: >-
     recommended.
 
 
-    WARNING: torlink searches public torrent indexes over the clearnet. It does
-    not route searches or peer traffic through Tor. Downloads and the content
-    you choose are your responsibility; only download from sources you trust.
+    WARNING: torlink searches public torrent indexes over the clearnet. Your
+    search terms are visible to those index operators, and your home IP is
+    visible to torrent trackers and peers. It does not route searches or peer
+    traffic through Tor; use a VPN if that matters to you. Downloads and the
+    content you choose are your responsibility; only download from sources you
+    trust.
 
 
     Notes:
