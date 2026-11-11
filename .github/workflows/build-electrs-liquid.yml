@@ -25,11 +25,21 @@ jobs:
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 
       - name: Log in to GHCR
+        id: ghcr_login
+        continue-on-error: true
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to GHCR (PAT fallback)
+        if: steps.ghcr_login.outcome == 'failure'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Build and push 0.6.10
         id: build
