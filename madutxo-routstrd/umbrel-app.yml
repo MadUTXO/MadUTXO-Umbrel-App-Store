@@ -46,5 +46,6 @@ gallery: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
+requiresHttps: true
 submitter: MadUTXO
 submission: ""
