@@ -14,7 +14,7 @@ services:
       - /run
 
   torlink:
-    image: ghcr.io/madutxo/torlink:1.11.7@sha256:34983c7bf88ea11e41166f296a92383a33b80bb7f6e91735b9586f5d5ef8afcb
+    image: ghcr.io/madutxo/torlink:1.11.8@sha256:abfa6b19e1dc9016781776f9595d0c0633061451a4b900608226035ac3e6ffce
     user: "1000:1000"
     init: true
     restart: on-failure

@@ -10,7 +10,7 @@ environment:
     note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstrd Remote
-version: "0.5.0"
+version: "0.5.1"
 tagline: Self-hosted Routstr AI router with a Cashu wallet
 description: >-
   Routstrd Remote is the official Dockerized Routstrd instance for teams. It runs
@@ -29,6 +29,15 @@ description: >-
   treat them like the wallet itself.
   
 releaseNotes: >-
+  0.5.1:
+  - Data safety: uninstalling deletes app data including the wallet, recovery
+    phrase and funds. Back up before uninstalling; backups contain the wallet
+    database and mnemonic and should be kept private.
+  - Update exposure: the terminal's npm update check (every ~6 h) can be
+    disabled with `routstrd config set updateCheck false`; a startup banner
+    reminds operators.
+  - Rebuilt image (build target 0.5.1), pinned by digest.
+
   0.5.0:
 
   - First production release.

@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: TorLink
-version: "1.11.7"
+version: "1.11.8"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -45,6 +45,13 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
+  1.11.8:
+  - Security: the writable terminal is now isolated from co-resident apps.
+    ttyd binds only to 127.0.0.1:7682; the app port (7681) is served by a new
+    nginx reverse proxy that allows the Umbrel app proxy (10.21.0.1) and
+    denies the app subnet (10.21.0.0/16). Normal browser use is unchanged.
+  - Rebuilt image (build target 1.11.8), pinned by digest.
+
   1.11.7:
   - Display name is now "TorLink" in the dashboard and app list (the app id,
     data directory and downloads are unchanged, so nothing is migrated).
