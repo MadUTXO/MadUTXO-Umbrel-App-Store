@@ -209,4 +209,8 @@ services:
     environment:
       HOME: "/tmp"
     entrypoint: ["/bin/sh", "-c"]
-    command: ["mkdir -p /data/app-madutxo-liquid-electrs/main && chmod 700 /data/app-madutxo-liquid-electrs /data/app-madutxo-liquid-electrs/main && printf 'HiddenServiceDir /data/app-madutxo-liquid-electrs/main\\nHiddenServicePort 60601 madutxo-liquid-electrs_electrs_1:60601\\n' > /tmp/torrc && exec tor -f /tmp/torrc"]
+    # ELECTRS_TOR_ENABLED is exposed in Umbrel's App Settings (manifest
+    # `environment:`). `$$` renders to `$` so the shell reads the value from the
+    # container env set by docker-compose.umbrel-user-settings.yml; unset means
+    # enabled, so older umbrelOS versions and untouched installs are unaffected.
+    command: ["if [ \"$${ELECTRS_TOR_ENABLED:-true}\" = \"false\" ]; then echo 'Tor disabled by app setting'; exec sleep infinity; fi; mkdir -p /data/app-madutxo-liquid-electrs/main && chmod 700 /data/app-madutxo-liquid-electrs /data/app-madutxo-liquid-electrs/main && printf 'HiddenServiceDir /data/app-madutxo-liquid-electrs/main\\nHiddenServicePort 60601 madutxo-liquid-electrs_electrs_1:60601\\n' > /tmp/torrc && exec tor -f /tmp/torrc"]

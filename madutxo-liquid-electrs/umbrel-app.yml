@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "1.0.1"
+version: "1.0.2"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -42,12 +42,11 @@ description: >-
 
 
 releaseNotes: >-
-  Steadier connection to the Elements node: the server now refreshes its node
-  connection just before the node would close it, which removes the periodic
-  reconnect messages from the logs.
+  Optional Tor switch: in App Settings you can now turn the Tor hidden service
+  off for this app. That stops Tor inside the app; local Electrum connections on
+  port 60601 keep working, and turning it back on restores the same address.
 
-  No index, configuration or memory changes. Your synced index is reused and
-  indexing continues from where it left off.
+  No index, image or memory changes. Your synced index is reused.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-liquid-electrs/icon.svg
 developer: Blockstream
 website: https://github.com/Blockstream
@@ -62,3 +61,12 @@ defaultUsername: ""
 defaultPassword: ""
 submitter: MadUTXO
 submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-liquid-electrs
+environment:
+  - name: ELECTRS_TOR_ENABLED
+    services:
+      - tor
+    default: "true"
+    options:
+      - "true"
+      - "false"
+    note: "Tor hidden service for Electrum port 60601. Set to false to stop Tor inside this app. The app's web onion is controlled separately by Umbrel's Remote Tor Access setting."
