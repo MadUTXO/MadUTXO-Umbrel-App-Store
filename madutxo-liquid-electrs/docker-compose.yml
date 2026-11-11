@@ -133,7 +133,11 @@ services:
       # file /data/.elements_rpc_pass (owned by uid 1000) before the container
       # starts, and the entrypoint reads it from there into the cookie file.
       MALLOC_ARENA_MAX: "2"
-      # 0.6.1 has --daemon-rpc-conn-max-age (45s recycle before Elements 30s idle close); DAEMON_* 5/60/60/10 tuned, WARN fixed
+      # electrs recycles the daemon connection before sending once it is older than
+      # --daemon-rpc-conn-max-age. Elements closes idle HTTP connections at
+      # -rpcservertimeout (default 30s, src/httpserver.h), so the previous 45s value
+      # always lost that race and logged "disconnected from daemon while receiving"
+      # on the next request. Keep this below the node's idle-close window.
       DAEMON_CONNECTION_TIMEOUT: "5"
       DAEMON_READ_TIMEOUT: "60"
       DAEMON_WRITE_TIMEOUT: "60"
@@ -171,7 +175,7 @@ services:
       - --daemon-parallelism
       - "1"
       - --daemon-rpc-conn-max-age
-      - "45"
+      - "20"
       - --jsonrpc-import
 
   tor:

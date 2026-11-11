@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "1.0.0"
+version: "1.0.1"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -42,18 +42,9 @@ description: >-
 
 
 releaseNotes: >-
-  First production release.
-
-  A personal Electrum server for the Liquid Network. Connect SideSwap or any
-  Electrum wallet to your own Umbrel instead of a public server, so your wallet
-  queries stay on your node.
-
-  - Electrum server on port 60601 for your local network, and over Tor when
-    you are away from home.
-
-  - Status page showing sync height, version and the address to connect to.
-
-  - Requires the Elements Core app, installed and fully synced.
+  Steadier connection to the Elements node: the server now refreshes its node
+  connection just before the node would close it, which removes the periodic
+  reconnect messages from the logs.
 
   No index, configuration or memory changes. Your synced index is reused and
   indexing continues from where it left off.
