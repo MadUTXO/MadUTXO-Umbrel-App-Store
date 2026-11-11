@@ -10,7 +10,7 @@ environment:
     note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstrd Remote
-version: "0.5.3"
+version: "0.5.4"
 tagline: Self-hosted Routstr AI router with a Cashu wallet
 description: >-
   Routstrd Remote is the official Dockerized Routstrd instance for teams. It runs
@@ -29,12 +29,12 @@ description: >-
   treat them like the wallet itself.
   
 releaseNotes: >-
-  0.5.3:
+  0.5.4:
 
-  - CLI: `routstrd npubs` now works from the terminal.
-  - Updates and lifecycle are managed by the app: `routstrd update`, `onboard`,
-    `stop`, `daemon` and `service` are disabled, and update notices are off.
-    Updates arrive through the Umbrel dashboard.
+  - The app now opens over HTTPS from the Umbrel dashboard on the local network
+    and VPN. Tor access stays over HTTP.
+  - Install the Umbrel local CA (Settings -> Network -> HTTPS access) to avoid
+    the self-signed certificate warning.
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-routstrd/icon.svg
 developer: Routstr
 website: https://routstr.com
