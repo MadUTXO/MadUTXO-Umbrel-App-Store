@@ -12,7 +12,6 @@ on:
       - 'madutxo-routstrd/supervisord.conf'
       - 'madutxo-routstrd/routstrd-wrapper.sh'
       - 'madutxo-routstrd/router/**'
-      - '.github/workflows/build-routstrd.yml'
 
 jobs:
   build:
@@ -35,7 +34,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push 0.5.4
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
