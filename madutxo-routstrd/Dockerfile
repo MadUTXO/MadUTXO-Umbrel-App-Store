@@ -99,10 +99,13 @@ RUN case "${TARGETARCH}" in \
     && ttyd --version
 
 # Global routstrd install from the build stage (native module already built).
+# /usr/local/bin/routstrd is a small wrapper that refuses CLI commands which
+# cannot work under the app's supervision (see routstrd-wrapper.sh).
 ENV BUN_INSTALL=/usr/local/bun
 ENV BUN_INSTALL_BIN=/usr/local/bin
 COPY --from=build /usr/local/bun /usr/local/bun
-RUN ln -sf /usr/local/bun/install/global/node_modules/routstrd/dist/index.js /usr/local/bin/routstrd \
+COPY routstrd-wrapper.sh /usr/local/bin/routstrd
+RUN chmod 0755 /usr/local/bin/routstrd \
     && routstrd --version
 
 # Gatekeeper source + production deps from the build stage.

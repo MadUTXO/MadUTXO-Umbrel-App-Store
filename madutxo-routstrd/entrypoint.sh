@@ -5,6 +5,11 @@ export ROUTSTRD_DIR="${ROUTSTRD_DIR:-/data/routstrd}"
 export HOME="${HOME:-/data/home}"
 mkdir -p "$ROUTSTRD_DIR" "$HOME" /tmp/tmux
 
+# Call the real CLI directly so onboarding/stop bypass the user-facing wrapper
+# in /usr/local/bin/routstrd (which blocks lifecycle commands for users).
+ROUTSTRD_BIN=/usr/local/bun/install/global/node_modules/routstrd/dist/index.js
+routstrd_internal() { /usr/local/bin/bun "$ROUTSTRD_BIN" "$@"; }
+
 # One-time onboarding: creates config.json, the Nostr identity, and the wallet,
 # then starts a detached daemon. That daemon owns the wallet lock, so stop it
 # and wait for the lock to be released before supervisord starts the foreground
@@ -15,7 +20,7 @@ if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
     # container logs. It is saved to a 0600 file the user can read in the
     # browser terminal (behind Umbrel login) and delete after writing it down.
     _onboard_log="$(mktemp)"
-    if ! routstrd onboard --skip-integration >"$_onboard_log" 2>&1; then
+    if ! routstrd_internal onboard --skip-integration >"$_onboard_log" 2>&1; then
         echo "[entrypoint] onboarding failed" >&2
         sed -E 's/([Mm][Nn][Ee][Mm][Oo][Nn][Ii][Cc][[:space:]]*:).*/\1 [REDACTED]/' "$_onboard_log" >&2 || true
         rm -f "$_onboard_log"
@@ -35,7 +40,7 @@ if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
     # Never echo the captured onboarding output: only the status lines above are
     # safe to print. This removes the log-leak path entirely if the wording changes.
     rm -f "$_onboard_log"
-    routstrd stop || true
+    routstrd_internal stop || true
 
     _waited=0
     while [ "$_waited" -lt 60 ]; do
@@ -43,7 +48,7 @@ if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
         if [ -z "$_pid" ] || ! kill -0 "$_pid" 2>/dev/null; then
             break
         fi
-        routstrd stop >/dev/null 2>&1 || true
+        routstrd_internal stop >/dev/null 2>&1 || true
         sleep 1
         _waited=$((_waited + 1))
     done
@@ -54,6 +59,27 @@ if [ ! -f "$ROUTSTRD_DIR/config.json" ]; then
         kill "$_pid" 2>/dev/null || true
         sleep 2
     fi
+fi
+
+# Let the CLI authenticate to the gatekeeper (needed for `routstrd npubs`, and to
+# scope usage) and disable the upstream npm update check, which cannot work in a
+# read-only, pinned image and only nags users to run `routstrd update`. The
+# daemon rewrites config.json at startup but preserves these keys verbatim.
+if [ -f "$ROUTSTRD_DIR/config.json" ]; then
+    /usr/local/bin/bun -e '
+      const fs = require("fs");
+      const p = process.argv[1];
+      const wantAuth = "http://127.0.0.1:8008";
+      let cfg;
+      try { cfg = JSON.parse(fs.readFileSync(p, "utf8")); } catch { process.exit(0); }
+      if (cfg.authUrl === wantAuth && cfg.updateCheck === false) process.exit(0);
+      cfg.authUrl = wantAuth;
+      cfg.updateCheck = false;
+      const tmp = p + ".tmp." + process.pid;
+      fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2), { mode: 0o600 });
+      fs.renameSync(tmp, p);
+      try { fs.chmodSync(p, 0o600); } catch {}
+    ' "$ROUTSTRD_DIR/config.json" || true
 fi
 
 # The container's own npub must be an admin so the web terminal can manage

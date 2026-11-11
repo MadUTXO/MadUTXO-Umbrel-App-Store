@@ -19,8 +19,8 @@ fi
 
 cat <<'BANNER'
 
-  Routstr on Umbrel
-  -----------------
+  Routstrd Remote on Umbrel
+  -------------------------
   This is the official routstrd command line.
 
   Useful commands:
@@ -43,9 +43,10 @@ cat <<'BANNER'
     Shift+left-drag                         select for the browser clipboard
     Ctrl+Shift+C / Ctrl+Shift+V             copy / paste (OS clipboard)
 
-  Privacy:
-    The daemon checks the npm registry for updates every 6 hours. To disable:
-    routstrd config set updateCheck false
+  Updates and lifecycle:
+    Updates are delivered through the Umbrel dashboard (Update).
+    The daemon is managed by the app: 'routstrd update', 'onboard', 'stop',
+    'daemon' and 'service' are disabled. Use 'routstrd restart' to restart it.
 
   Wallet recovery phrase (first run only):
     cat /data/routstrd/mnemonic.txt          view it, write it down offline
