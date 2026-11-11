@@ -36,7 +36,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
-      - name: Build and push 0.5.4
+      - name: Build and push 0.5.5
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: ./madutxo-routstrd
@@ -44,12 +44,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/madutxo/routstrd:0.5.4
+            ghcr.io/madutxo/routstrd:0.5.5
           labels: |
             org.opencontainers.image.title=Routstrd Remote
             org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=0.5.4
+            org.opencontainers.image.version=0.5.5
             com.madutxo.gatekeeper.revision=bd581f0de960ee9f736221a2cbfab1a32a7746bb
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -58,7 +58,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
         with:
-          image: ghcr.io/madutxo/routstrd:0.5.4
+          image: ghcr.io/madutxo/routstrd:0.5.5
 
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -69,7 +69,7 @@ jobs:
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: 'ghcr.io/madutxo/routstrd:0.5.4'
+          image-ref: 'ghcr.io/madutxo/routstrd:0.5.5'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
