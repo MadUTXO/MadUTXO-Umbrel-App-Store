@@ -36,7 +36,7 @@ jobs:
       - name: Trivy scan (fail on CRITICAL)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          image-ref: 'ghcr.io/madutxo/routstrd:0.5.1@sha256:45c8984965cca799d38e6b8bf8a39cd21e5371b4f791d43796ae0c0e7bddbe84'
+          image-ref: 'ghcr.io/madutxo/routstrd:0.5.2@sha256:d7f0139a5ae6b7080fb12eef1b5e5bc3ca73085bee43c4464c42e3f9059a1eb1'
           format: 'table'
           severity: 'CRITICAL'
           ignore-unfixed: false
@@ -47,7 +47,7 @@ jobs:
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
         continue-on-error: true
         with:
-          image: 'ghcr.io/madutxo/routstrd:0.5.1@sha256:45c8984965cca799d38e6b8bf8a39cd21e5371b4f791d43796ae0c0e7bddbe84'
+          image: 'ghcr.io/madutxo/routstrd:0.5.2@sha256:d7f0139a5ae6b7080fb12eef1b5e5bc3ca73085bee43c4464c42e3f9059a1eb1'
 
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
