@@ -16,7 +16,7 @@ services:
       - /run
 
   main:
-    image: ghcr.io/madutxo/libretranslate:1.9.6@sha256:c7bbef4d3f02740640bdaa2f246418f8e1eb99a1de953880c2be5f38dbde7590
+    image: ghcr.io/madutxo/libretranslate:1.9.10@sha256:22f42b660bddd305cf77c2163a188ae40b0340dbbeaedbe88621e3b896dde504
     user: "1000:1000"
     init: true
     restart: unless-stopped
