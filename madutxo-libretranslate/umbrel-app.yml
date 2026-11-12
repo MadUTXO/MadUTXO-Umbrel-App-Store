@@ -3,7 +3,7 @@ id: madutxo-libretranslate
 category: tools
 name: LibreTranslate
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-libretranslate/icon.png
-version: "1.9.9"
+version: "1.9.10"
 tagline: Free and Open Source Machine Translation API
 description: >-
   LibreTranslate is a free and open source machine translation API.
@@ -17,10 +17,9 @@ description: >-
   - Easy to set up and use
   - Web interface for translation
 
-  Network: on first start the app downloads its language models from
-  third-party model hosts. That reveals your IP and the configured language
-  set, and the models are not integrity-pinned. They are stored on the app's
-  data volume and are not downloaded again after a restart.
+  Models: the language models for English, Spanish, French, German, Italian and
+  Portuguese are bundled in the image. The app does not download models at
+  start and works without network access.
 developer: LibreTranslate
 website: https://libretranslate.com
 submitter: MadUTXO
@@ -34,6 +33,17 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 releaseNotes: >-
+  1.9.10:
+  - Bundle the language models in the image: the app no longer downloads
+    models on first start, works offline, and no longer contacts third-party
+    model hosts. The six-language set (en, es, fr, de, it, pt) is fixed; other
+    languages would require a new image.
+  - Security: raise certifi above its advisory and remove the unused waitress
+    package. Two no-fix CRITICALs (libsqlite3, zlib1g) remain in the Debian
+    base and are unreachable.
+  - The image is larger because it contains the models; first start copies
+    them into the app's data volume (no network).
+
   1.9.9:
   - Clarify in the app description that the language models are downloaded
     from third-party model hosts on first start, so those hosts see your IP
