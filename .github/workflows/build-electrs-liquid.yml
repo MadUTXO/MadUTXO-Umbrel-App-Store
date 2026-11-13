@@ -29,7 +29,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push 0.6.10
         id: build
@@ -41,6 +41,11 @@ jobs:
           push: true
           tags: |
             ghcr.io/madutxo/electrs-liquid:0.6.10
+          labels: |
+            org.opencontainers.image.title=electrs-liquid
+            org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+            org.opencontainers.image.revision=785f32d9a5f6b8cab507565171ba2b9d8f6e07c0
+            org.opencontainers.image.version=0.6.10
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # Attach a build provenance attestation (SLSA) so the published image
