@@ -45,5 +45,5 @@ port: 21080
 defaultUsername: ""
 defaultPassword: ""
 dependencies: []
-icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-rustdesk-server/icon.svg
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-rustdesk-server/icon.png
 requiresHttps: false
