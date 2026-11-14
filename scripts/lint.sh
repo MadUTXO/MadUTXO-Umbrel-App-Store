@@ -363,6 +363,76 @@ echo "✓ routstrd API whitelist present"
 if ! grep -q "dataRoot: data" "$ROUTSTRD_APP"; then echo "FAIL: routstrd missing storage.dataRoot"; exit 1; fi
 echo "✓ routstrd storage root"
 
+echo "--- rustdesk-server checks ---"
+RUSTDESK_COMPOSE="$ROOT/madutxo-rustdesk-server/docker-compose.yml"
+RUSTDESK_APP="$ROOT/madutxo-rustdesk-server/umbrel-app.yml"
+echo "Lint: checking $RUSTDESK_COMPOSE..."
+if command -v yq >/dev/null 2>&1; then
+  if yq eval '.services[].image | select(. != null) | select(test("@sha256:")|not)' "$RUSTDESK_COMPOSE" | grep -v "null" | grep -q .; then
+    echo "FAIL: rustdesk-server unpinned image"
+    yq eval '.services[].image' "$RUSTDESK_COMPOSE"
+    exit 1
+  fi
+  echo "✓ rustdesk-server images pinned (yq)"
+  for svc in hbbs hbbr web app_proxy; do
+    if ! yq eval ".services.$svc.security_opt[] | select(. == \"no-new-privileges:true\")" "$RUSTDESK_COMPOSE" | grep -q "no-new-privileges"; then
+      echo "FAIL: rustdesk-server $svc missing no-new-privileges"
+      exit 1
+    fi
+  done
+  echo "✓ rustdesk-server no-new-privileges present"
+  for svc in hbbs hbbr web app_proxy; do
+    if [ "$(yq eval ".services.$svc.read_only" "$RUSTDESK_COMPOSE")" != "true" ]; then
+      echo "FAIL: rustdesk-server $svc missing read_only:true"
+      exit 1
+    fi
+  done
+  echo "✓ rustdesk-server read_only"
+  for svc in hbbs hbbr web app_proxy; do
+    if ! yq eval ".services.$svc.cap_drop[] | select(. == \"ALL\")" "$RUSTDESK_COMPOSE" | grep -q "ALL"; then
+      echo "FAIL: rustdesk-server $svc missing cap_drop: ALL"
+      exit 1
+    fi
+  done
+  echo "✓ rustdesk-server cap_drop ALL"
+  for svc in hbbs hbbr web; do
+    if [ "$(yq eval ".services.$svc.user" "$RUSTDESK_COMPOSE" | tr -d '"')" != "1000:1000" ]; then
+      echo "FAIL: rustdesk-server $svc must run as 1000:1000"
+      exit 1
+    fi
+  done
+  echo "✓ rustdesk-server runs as 1000:1000"
+else
+  if grep -E "image:.*:[^ ]+" "$RUSTDESK_COMPOSE" | grep -v "@sha256:" | grep -v "^#"; then echo "FAIL: rustdesk-server unpinned"; exit 1; fi
+  echo "✓ rustdesk-server images pinned"
+  for svc in hbbs hbbr web app_proxy; do
+    if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q "no-new-privileges:true"; then echo "FAIL: rustdesk-server $svc missing no-new-privileges"; exit 1; fi
+  done
+  echo "✓ rustdesk-server no-new-privileges present"
+  for svc in hbbs hbbr web app_proxy; do
+    if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q "read_only: true"; then echo "FAIL: rustdesk-server $svc missing read_only"; exit 1; fi
+  done
+  echo "✓ rustdesk-server read_only"
+  for svc in hbbs hbbr web app_proxy; do
+    if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q -- "- ALL"; then echo "FAIL: rustdesk-server $svc missing cap_drop: ALL"; exit 1; fi
+  done
+  echo "✓ rustdesk-server cap_drop ALL"
+  for svc in hbbs hbbr web; do
+    if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q 'user: "1000:1000"'; then echo "FAIL: rustdesk-server $svc must run as 1000:1000"; exit 1; fi
+  done
+  echo "✓ rustdesk-server runs as 1000:1000"
+fi
+if grep -q "privileged: true" "$RUSTDESK_COMPOSE"; then echo "FAIL: rustdesk-server privileged"; exit 1; fi
+echo "✓ rustdesk-server No privileged"
+if grep -q "docker.sock" "$RUSTDESK_COMPOSE"; then echo "FAIL: rustdesk-server docker.sock mount"; exit 1; fi
+echo "✓ rustdesk-server No docker.sock"
+# rustdesk-server intentionally publishes host ports (21115-21119); this is required.
+if ! grep -Eq '^[[:space:]]+ports:' "$RUSTDESK_COMPOSE"; then echo "FAIL: rustdesk-server missing host ports (required for relay)"; exit 1; fi
+echo "✓ rustdesk-server host ports present (required)"
+if ! grep -q "network_mode: host" "$RUSTDESK_COMPOSE"; then echo "✓ rustdesk-server no network_mode: host"; else echo "FAIL: rustdesk-server uses network_mode: host"; exit 1; fi
+if ! grep -q "dataRoot: data" "$RUSTDESK_APP"; then echo "FAIL: rustdesk-server missing storage.dataRoot"; exit 1; fi
+echo "✓ rustdesk-server storage root"
+
 echo "All lint checks passed"
 # Historical regression tests (informational, not failing)
 echo "--- Historical checks (should fail on old configs) ---"

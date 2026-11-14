@@ -1,0 +1,31 @@
+name: Scan rustdesk-server (scheduled)
+
+# The upstream rustdesk/rustdesk-server:1.1.16 image is digest-pinned in compose.
+# This scheduled job re-scans it on a cron and FAILS on any CRITICAL finding,
+# so drift in the upstream image is surfaced.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Trivy scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: 'rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: false
+          trivyignores: 'madutxo-rustdesk-server/.trivyignore'
+          exit-code: '1'

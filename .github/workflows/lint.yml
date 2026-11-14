@@ -8,6 +8,7 @@ on:
       - 'madutxo-libretranslate/**'
       - 'madutxo-torlink/**'
       - 'madutxo-routstrd/**'
+      - 'madutxo-rustdesk-server/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
@@ -18,6 +19,7 @@ on:
       - 'madutxo-libretranslate/**'
       - 'madutxo-torlink/**'
       - 'madutxo-routstrd/**'
+      - 'madutxo-rustdesk-server/**'
       - 'madutxo-liquid-electrs/Dockerfile'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
@@ -56,3 +58,6 @@ jobs:
           yq eval 'del(.services.app_proxy)' madutxo-routstrd/docker-compose.yml > /tmp/compose.routstrd.yml
           APP_DATA_DIR=/tmp APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=true docker compose -f /tmp/compose.routstrd.yml config >/dev/null
           echo "routstrd compose valid"
+          yq eval 'del(.services.app_proxy)' madutxo-rustdesk-server/docker-compose.yml > /tmp/compose.rustdesk.yml
+          APP_DATA_DIR=/tmp docker compose -f /tmp/compose.rustdesk.yml config >/dev/null
+          echo "rustdesk-server compose valid"

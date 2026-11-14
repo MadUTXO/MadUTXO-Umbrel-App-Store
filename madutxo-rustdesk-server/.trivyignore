@@ -1,0 +1,4 @@
+# MadUTXO rustdesk-server Trivy ignore rules
+# Upstream image rustdesk/rustdesk-server:1.1.16 is used as-is; no rebuild.
+# Unfixable base-layer CVEs in the upstream image are accepted (out of our
+# control to patch without forking the upstream image).
