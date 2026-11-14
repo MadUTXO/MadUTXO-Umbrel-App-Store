@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="rustdesk-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="rustdesk-bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#007aff"/>
       <stop offset="100%" stop-color="#00c6ff"/>
     </linearGradient>
   </defs>
-  <path d="M50 12c-20.9 0-38 17.1-38 38s17.1 38 38 38c4.5 0 8.8-0.8 12.9-2.2l-5.6-9.7c-3.2 1.1-6.6 1.8-10.2 1.8-16.5 0-30-13.5-30-30s13.5-30 30-30c3.6 0 7 0.9 10.2 1.8l5.6-9.7c-4.1-1.4-8.4-2.2-12.9-2.2" fill="url(#rustdesk-blue)"/>
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="22" fill="url(#rustdesk-bg)"/>
+  <!-- White circular arrow (RustDesk logo) -->
+  <path d="M50 16c-18.7 0-34 15.3-34 34s15.3 34 34 34c4.0 0 7.9-0.7 11.5-2.0l-5.0-8.6c-2.9 1.0-5.9 1.6-9.1 1.6-14.8 0-26.8-12.0-26.8-26.8S35.2 9.2 50 9.2c3.2 0 6.3 0.8 9.1 1.6l5.0-8.6c-3.6-1.3-7.5-2.0-11.5-2.0" fill="white"/>
 </svg>
