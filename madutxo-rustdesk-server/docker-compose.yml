@@ -94,10 +94,11 @@ services:
       - NET_BIND_SERVICE
     read_only: true
     tmpfs:
-      - /tmp
-      - /run
-      - /var/cache/nginx
-      - /var/log/nginx
+      - /tmp:uid=1000,gid=1000,mode=0755
+      - /run:uid=1000,gid=1000,mode=0755
+      - /etc/nginx/conf.d:uid=1000,gid=1000,mode=0755
+      - /var/cache/nginx:uid=1000,gid=1000,mode=0755
+      - /var/log/nginx:uid=1000,gid=1000,mode=0755
     expose:
       - "80"
     volumes:
