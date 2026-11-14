@@ -6,8 +6,8 @@
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="22" fill="url(#rustdesk-bg)"/>
-  <!-- Top arc of circular arrow -->
-  <path d="M 28 32 Q 50 16 72 32" fill="none" stroke="white" stroke-width="13" stroke-linecap="round"/>
-  <!-- Bottom arc of circular arrow -->
-  <path d="M 72 68 Q 50 84 28 68" fill="none" stroke="white" stroke-width="13" stroke-linecap="round"/>
+  <!-- Top arc of circular arrow (clockwise sweep up and over) -->
+  <path d="M 28 32 A 24 24 0 0 1 72 32" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <!-- Bottom arc of circular arrow (clockwise sweep down and under) -->
+  <path d="M 72 68 A 24 24 0 0 0 28 68" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
 </svg>
