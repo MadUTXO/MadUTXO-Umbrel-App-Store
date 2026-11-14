@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#2563eb"/><path d="M25 25 h50 v50 h-50 z" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="35" r="8" fill="#ffffff"/><circle cx="32" cy="65" r="6" fill="#ffffff" opacity="0.7"/><circle cx="68" cy="65" r="6" fill="#ffffff" opacity="0.7"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="rustdesk-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#007aff"/>
+      <stop offset="100%" stop-color="#00c6ff"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 12c-20.9 0-38 17.1-38 38s17.1 38 38 38c4.5 0 8.8-0.8 12.9-2.2l-5.6-9.7c-3.2 1.1-6.6 1.8-10.2 1.8-16.5 0-30-13.5-30-30s13.5-30 30-30c3.6 0 7 0.9 10.2 1.8l5.6-9.7c-4.1-1.4-8.4-2.2-12.9-2.2" fill="url(#rustdesk-blue)"/>
+</svg>
