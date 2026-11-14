@@ -99,6 +99,8 @@ services:
       - /etc/nginx/conf.d:uid=1000,gid=1000,mode=0755
       - /var/cache/nginx:uid=1000,gid=1000,mode=0755
       - /var/log/nginx:uid=1000,gid=1000,mode=0755
+    ports:
+      - "21080:80"
     expose:
       - "80"
     volumes:
