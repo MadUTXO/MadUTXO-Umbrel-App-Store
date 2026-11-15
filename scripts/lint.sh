@@ -526,8 +526,9 @@ echo "✓ rustdesk-server host ports present (required)"
 # APP_HOST must be the Umbrel-injected container name <app-id>_<service>_1.
 # A stale name (e.g. upstream's) makes app_proxy unable to resolve the web
 # service, so the app opens to a broken page.
-if ! grep -q "APP_HOST: madutxo-rustdesk-server_web_1" "$RUSTDESK_COMPOSE"; then
-  echo "FAIL: rustdesk-server APP_HOST must be madutxo-rustdesk-server_web_1"
+RUSTDESK_ID="$(grep -E '^id: ' "$RUSTDESK_APP" | awk '{print $2}')"
+if ! grep -q "APP_HOST: ${RUSTDESK_ID}_web_1" "$RUSTDESK_COMPOSE"; then
+  echo "FAIL: rustdesk-server APP_HOST must be ${RUSTDESK_ID}_web_1"
   exit 1
 fi
 echo "✓ rustdesk-server APP_HOST matches app id"
