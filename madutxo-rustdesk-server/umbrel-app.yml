@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: rustdesk-server
+id: madutxo-rustdesk-server
 storage:
   dataRoot: data
 category: networking
@@ -43,8 +43,6 @@ releaseNotes: >-
     IP for client configuration.
   - The web page now sits behind the Umbrel login and no longer writes
     per-request access logs.
-  - App id is now rustdesk-server (same as upstream); the page and manifest
-    name are unchanged.
 path: ""
 port: 21080
 defaultUsername: ""

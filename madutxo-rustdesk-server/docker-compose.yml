@@ -6,7 +6,7 @@ services:
   # runs, so this service must stay environment-only.
   app_proxy:
     environment:
-      APP_HOST: rustdesk-server_web_1
+      APP_HOST: madutxo-rustdesk-server_web_1
       APP_PORT: 8080
       # The page only shows the LAN/mesh IP and the public key, so keep it
       # behind the Umbrel login like the other apps' proxies.

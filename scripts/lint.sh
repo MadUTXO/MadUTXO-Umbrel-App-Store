@@ -3,6 +3,25 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE="$ROOT/madutxo-liquid-electrs/docker-compose.yml"
 INDEX="$ROOT/madutxo-liquid-electrs/web/index.html"
+# Umbrel silently drops every app whose id does not start with the store id
+# (app-repository.ts: `app.id.startsWith(meta.id)`), so an unprefixed id makes
+# the package vanish from the dashboard with no error.
+STORE_ID="$(sed -n 's/^id:[[:space:]]*"\?\([^"]*\)"\?[[:space:]]*$/\1/p' "$ROOT/umbrel-app-store.yml")"
+if [ -z "$STORE_ID" ]; then
+  echo "FAIL: cannot read the store id from umbrel-app-store.yml"
+  exit 1
+fi
+for _app_yml in "$ROOT"/madutxo-*/umbrel-app.yml; do
+  _app_id="$(sed -n 's/^id:[[:space:]]*//p' "$_app_yml")"
+  case "$_app_id" in
+    "${STORE_ID}-"*) ;;
+    *)
+      echo "FAIL: $(basename "$(dirname "$_app_yml")") id '${_app_id}' must start with '${STORE_ID}-'"
+      exit 1
+      ;;
+  esac
+done
+echo "✓ app ids carry the store prefix"
 echo "Lint: checking $COMPOSE..."
 # Use yq if available for accurate checks, fallback to grep
 HAS_YQ=0
