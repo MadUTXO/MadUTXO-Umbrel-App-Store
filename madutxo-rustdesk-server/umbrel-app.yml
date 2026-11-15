@@ -34,8 +34,8 @@ releaseNotes: >-
   - Ported from umbrel-apps/community with MadUTXO security hardening.
   - Replaced network_mode: host with explicit port publishing so the app works
     on Umbrel's bridged network and is reachable via NostrVPN mesh IP.
-  - Corrected client ports per official RustDesk docs: ID Server 21115,
-    Relay Server 21116 (TCP+UDP).
+  - Corrected client ports per official RustDesk docs: ID Server 21116
+    (TCP+UDP), Relay Server 21117 (TCP).
   - Security: read-only rootfs, cap_drop ALL, no-new-privileges, servers
     run as 1000:1000, bounded log rotation.
   - Web page auto-detects LAN vs NostrVPN mesh access and shows the correct

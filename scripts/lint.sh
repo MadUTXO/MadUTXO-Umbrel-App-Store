@@ -600,6 +600,16 @@ if ! grep -q "hooks/assets" "$ROOT/madutxo-rustdesk-server/hooks/post-start"; th
   exit 1
 fi
 echo "✓ rustdesk-server hooks/post-start syncs web assets"
+# The setup page must name the ports hbbs/hbbr actually listen on: 21116 for
+# the ID server and 21117 for the relay. 21115 is only the NAT-test port.
+RUSTDESK_PAGE="$ROOT/madutxo-rustdesk-server/data/www/index.html"
+for rs_pair in "id-server:21116" "relay-server:21117"; do
+  if ! grep -q "${rs_pair%%:*}\"></code>:<code>${rs_pair#*:}" "$RUSTDESK_PAGE"; then
+    echo "FAIL: rustdesk-server setup page gives the wrong ${rs_pair%%:*} port (want ${rs_pair#*:})"
+    exit 1
+  fi
+done
+echo "✓ rustdesk-server setup page uses the listening ports"
 if ! grep -q "dataRoot: data" "$RUSTDESK_APP"; then echo "FAIL: rustdesk-server missing storage.dataRoot"; exit 1; fi
 echo "✓ rustdesk-server storage root"
 
