@@ -36,8 +36,8 @@ releaseNotes: >-
     on Umbrel's bridged network and is reachable via NostrVPN mesh IP.
   - Corrected client ports per official RustDesk docs: ID Server 21115,
     Relay Server 21116 (TCP+UDP).
-  - Security: read-only rootfs, cap_drop ALL, no-new-privileges, non-root
-    user (1000:1000), bounded log rotation.
+  - Security: read-only rootfs, cap_drop ALL, no-new-privileges, servers
+    run as 1000:1000, bounded log rotation.
   - Web page auto-detects LAN vs NostrVPN mesh access and shows the correct
     IP for client configuration.
 path: ""

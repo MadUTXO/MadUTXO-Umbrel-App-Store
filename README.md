@@ -28,6 +28,7 @@ sudo ./scripts/app install https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
 - **Electrs Liquid** — personal Electrum server for the Liquid Network.
 - **LibreTranslate** — self-hosted machine translation.
 - **Routstrd** — Routstr daemon and terminal.
+- **RustDesk Server** — self-hosted RustDesk ID and relay server.
 - **TorLink** — Torrent client with a web UI.
 
 ## Need Help?

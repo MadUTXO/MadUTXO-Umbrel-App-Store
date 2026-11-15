@@ -1,11 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This script allows the RustDesk public key to be shown on the web interface
+# This script allows the RustDesk public key to be shown on the web interface.
+#
+# It also syncs the web assets into the data folder. umbrelOS only refreshes
+# docker-compose.yml, top-level *.template, exports.sh, torrc and hooks on
+# update, so the assets under data/ would otherwise go stale after an update.
+# hooks/ is part of the update whitelist, so they are re-copied from there.
 
-APP_DATA_DIR="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/..)"
-PUBLIC_KEY_FILE="${APP_DATA_DIR}/data/hbbs/id_ed25519.pub"
-DESTINATION_FILE="${APP_DATA_DIR}/data/www/public_key.txt"
+APP_DIR="${APP_DATA_DIR:-$(readlink -f "$(dirname "${BASH_SOURCE[0]}")/..")}"
+DATA_DIR="${APP_DATA_ROOT:-${APP_DIR}/data}"
+
+# Keep the web UI in sync with the package assets.
+ASSETS_SRC="${APP_DIR}/hooks/assets"
+ASSETS_DST="${DATA_DIR}/www"
+if [ -d "${ASSETS_SRC}" ]; then
+	mkdir -p "${ASSETS_DST}"
+	for _asset in "${ASSETS_SRC}"/*; do
+		[ -f "$_asset" ] || continue
+		cp "$_asset" "${ASSETS_DST}/"
+	done
+fi
+
+PUBLIC_KEY_FILE="${DATA_DIR}/hbbs/id_ed25519.pub"
+DESTINATION_FILE="${DATA_DIR}/www/public_key.txt"
 
 echo "Waiting for file (${PUBLIC_KEY_FILE}) to exist..."
 
@@ -13,8 +31,8 @@ echo "Waiting for file (${PUBLIC_KEY_FILE}) to exist..."
 for attempt in $(seq 1 300); do
 	if [[ -f "${PUBLIC_KEY_FILE}" ]]; then
 		echo "public key file exists"
-        # Copy the public key to the destination file
-        cp "${PUBLIC_KEY_FILE}" "${DESTINATION_FILE}"
+		# Copy the public key to the destination file
+		cp "${PUBLIC_KEY_FILE}" "${DESTINATION_FILE}"
 		break
 	fi
 	sleep 0.1

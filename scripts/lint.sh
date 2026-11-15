@@ -5,7 +5,9 @@ COMPOSE="$ROOT/madutxo-liquid-electrs/docker-compose.yml"
 INDEX="$ROOT/madutxo-liquid-electrs/web/index.html"
 echo "Lint: checking $COMPOSE..."
 # Use yq if available for accurate checks, fallback to grep
-if command -v yq >/dev/null 2>&1; then
+HAS_YQ=0
+if command -v yq >/dev/null 2>&1; then HAS_YQ=1; fi
+if [ "$HAS_YQ" = 1 ]; then
   echo "Using yq for checks"
   # Check all images are digest-pinned
   if yq eval '.services[].image | select(. != null) | select(test("@sha256:")|not)' "$COMPOSE" | grep -v "null" | grep -q .; then
@@ -47,12 +49,27 @@ echo "✓ no dead api_cors service"
 if grep -q 'Access-Control-Allow-Origin \*' "$COMPOSE"; then echo "FAIL: wildcard CORS * found"; exit 1; fi
 echo "✓ No wildcard CORS"
 # Debug logging (-v) prints full REST URIs (address/scripthash/tx) and peer IPs.
-if yq eval '.services.electrs.command[] | select(. == "-v")' "$COMPOSE" 2>/dev/null | grep -q '^-v$'; then
+ELECTRS_DEBUG=""
+if [ "$HAS_YQ" = 1 ]; then
+  ELECTRS_DEBUG="$(yq eval '.services.electrs.command[] | select(. == "-v")' "$COMPOSE" 2>/dev/null || true)"
+elif grep -A80 '^  electrs:' "$COMPOSE" | grep -qE '^[[:space:]]*-[[:space:]]*-v[[:space:]]*$'; then
+  ELECTRS_DEBUG="-v"
+fi
+if [ -n "$ELECTRS_DEBUG" ]; then
   echo "FAIL: electrs runs with -v (debug logging leaks wallet queries)"; exit 1
 fi
 echo "✓ electrs not in debug verbosity"
 # Unbounded json-file logs grow without limit; every service must cap them.
-NO_ROTATION="$(yq eval '.services | to_entries | .[] | select(.value.logging.options["max-size"] == null) | .key' "$COMPOSE" 2>/dev/null | grep -v '^null$' || true)"
+if [ "$HAS_YQ" = 1 ]; then
+  NO_ROTATION="$(yq eval '.services | to_entries | .[] | select(.value.logging.options["max-size"] == null) | .key' "$COMPOSE" 2>/dev/null | grep -v '^null$' || true)"
+else
+  NO_ROTATION=""
+  for svc in $(grep -E '^  [a-z_]+:' "$COMPOSE" | sed 's/^ *//; s/:$//'); do
+    if ! grep -A80 "^  $svc:" "$COMPOSE" | grep -q 'max-size:'; then
+      NO_ROTATION="$NO_ROTATION $svc"
+    fi
+  done
+fi
 if [ -n "$NO_ROTATION" ]; then
   echo "FAIL: service(s) without log rotation: $(echo $NO_ROTATION)"
   exit 1
@@ -60,14 +77,25 @@ fi
 echo "✓ log rotation configured"
 # electrs must not run as root: the index is host-owned and handed over by
 # hooks/pre-start, so the container never needs uid 0.
-if [ "$(yq eval '.services.electrs.user' "$COMPOSE" 2>/dev/null | tr -d '"')" != "1000:1000" ]; then
+if [ "$HAS_YQ" = 1 ]; then
+  ELECTRS_USER="$(yq eval '.services.electrs.user' "$COMPOSE" 2>/dev/null | tr -d '"' || true)"
+else
+  ELECTRS_USER="$(grep -A80 '^  electrs:' "$COMPOSE" | grep -m1 -E '^[[:space:]]+user:' | sed 's/.*user:[[:space:]]*//' | tr -d '"' | tr -d '[:space:]')"
+fi
+if [ "$ELECTRS_USER" != "1000:1000" ]; then
   echo "FAIL: electrs must run as 1000:1000"
   exit 1
 fi
 echo "✓ electrs runs as 1000:1000"
 # The RPC credential must never appear in argv (world-readable via /proc).
 # The entrypoint passes --daemon-dir and reads a 0600 cookie file instead.
-if yq eval '.services.electrs.command[] | select(. == "--cookie")' "$COMPOSE" 2>/dev/null | grep -q '^--cookie$'; then
+ELECTRS_COOKIE=""
+if [ "$HAS_YQ" = 1 ]; then
+  ELECTRS_COOKIE="$(yq eval '.services.electrs.command[] | select(. == "--cookie")' "$COMPOSE" 2>/dev/null || true)"
+elif grep -A80 '^  electrs:' "$COMPOSE" | grep -qE '^[[:space:]]*-[[:space:]]*--cookie[[:space:]]*$'; then
+  ELECTRS_COOKIE="--cookie"
+fi
+if [ -n "$ELECTRS_COOKIE" ]; then
   echo "FAIL: electrs takes --cookie on the command line (argv is world-readable)"
   exit 1
 fi
@@ -117,13 +145,23 @@ echo "✓ hooks/pre-start hands the data dir to uid 1000"
 echo "✓ exports.sh hands the password file to uid 1000"
 # electrs runs as uid 1000 and drops all capabilities; adding any back would only
 # widen the attack surface for the root fallback nobody uses under Umbrel.
-if [ "$(yq eval '.services.electrs.cap_add | length' "$COMPOSE" 2>/dev/null || echo 0)" != "0" ]; then
+if [ "$HAS_YQ" = 1 ]; then
+  ELECTRS_CAPS="$(yq eval '.services.electrs.cap_add | length' "$COMPOSE" 2>/dev/null || echo 0)"
+else
+  if grep -A80 '^  electrs:' "$COMPOSE" | grep -qE '^[[:space:]]+cap_add:'; then ELECTRS_CAPS=1; else ELECTRS_CAPS=0; fi
+fi
+if [ "$ELECTRS_CAPS" != "0" ]; then
   echo "FAIL: electrs must not add capabilities (runs as 1000:1000)"
   exit 1
 fi
 echo "✓ electrs adds no capabilities"
 # The web frontend listens on 8080, so it never needs NET_BIND_SERVICE.
-if yq eval '.services.web.cap_add[] | select(. == "NET_BIND_SERVICE")' "$COMPOSE" 2>/dev/null | grep -q NET_BIND_SERVICE; then
+if [ "$HAS_YQ" = 1 ]; then
+  WEB_BIND="$(yq eval '.services.web.cap_add[] | select(. == "NET_BIND_SERVICE")' "$COMPOSE" 2>/dev/null || true)"
+else
+  WEB_BIND="$(grep -A80 '^  web:' "$COMPOSE" | grep -v '^[[:space:]]*#' | grep NET_BIND_SERVICE || true)"
+fi
+if [ -n "$WEB_BIND" ]; then
   echo "FAIL: web adds NET_BIND_SERVICE but listens on 8080"
   exit 1
 fi
@@ -216,7 +254,13 @@ else
 fi
 if grep -q "privileged: true" "$LIBRE_COMPOSE"; then echo "FAIL: LibreTranslate privileged"; exit 1; fi
 echo "✓ LibreTranslate No privileged"
-if yq eval '.services.main.read_only' "$LIBRE_COMPOSE" | grep -q "true"; then echo "✓ LibreTranslate read_only"; else echo "FAIL: LibreTranslate main missing read_only:true"; exit 1; fi
+if [ "$HAS_YQ" = 1 ]; then
+  if yq eval '.services.main.read_only' "$LIBRE_COMPOSE" | grep -q "true"; then echo "✓ LibreTranslate read_only"; else echo "FAIL: LibreTranslate main missing read_only:true"; exit 1; fi
+elif grep -A40 "  main:" "$LIBRE_COMPOSE" | grep -q "read_only: true"; then
+  echo "✓ LibreTranslate read_only"
+else
+  echo "FAIL: LibreTranslate main missing read_only:true"; exit 1
+fi
 
 echo "--- onion address checks ---"
 # Onion addresses are secrets: a committed address exposes a live node. Fail on
@@ -374,53 +418,84 @@ if command -v yq >/dev/null 2>&1; then
     exit 1
   fi
   echo "✓ rustdesk-server images pinned (yq)"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if ! yq eval ".services.$svc.security_opt[] | select(. == \"no-new-privileges:true\")" "$RUSTDESK_COMPOSE" | grep -q "no-new-privileges"; then
       echo "FAIL: rustdesk-server $svc missing no-new-privileges"
       exit 1
     fi
   done
   echo "✓ rustdesk-server no-new-privileges present"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if [ "$(yq eval ".services.$svc.read_only" "$RUSTDESK_COMPOSE")" != "true" ]; then
       echo "FAIL: rustdesk-server $svc missing read_only:true"
       exit 1
     fi
   done
   echo "✓ rustdesk-server read_only"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if ! yq eval ".services.$svc.cap_drop[] | select(. == \"ALL\")" "$RUSTDESK_COMPOSE" | grep -q "ALL"; then
       echo "FAIL: rustdesk-server $svc missing cap_drop: ALL"
       exit 1
     fi
   done
   echo "✓ rustdesk-server cap_drop ALL"
-  for svc in hbbs hbbr web; do
+  for svc in hbbs hbbr; do
     if [ "$(yq eval ".services.$svc.user" "$RUSTDESK_COMPOSE" | tr -d '"')" != "1000:1000" ]; then
       echo "FAIL: rustdesk-server $svc must run as 1000:1000"
       exit 1
     fi
   done
-  echo "✓ rustdesk-server runs as 1000:1000"
+  echo "✓ rustdesk-server hbbs/hbbr run as 1000:1000"
+  # The nginx image needs its root entrypoint to drop to the nginx user, so it
+  # must not be forced to 1000:1000; it must add the drop-privilege caps
+  # instead, and it must not need NET_BIND_SERVICE (it listens on 8080).
+  WEB_USER="$(yq eval '.services.web.user' "$RUSTDESK_COMPOSE" 2>/dev/null | tr -d '"')"
+  if [ -n "$WEB_USER" ] && [ "$WEB_USER" != "null" ]; then
+    echo "FAIL: rustdesk-server web must not force a user (nginx drops privileges itself)"
+    exit 1
+  fi
+  for cap in CHOWN SETGID SETUID; do
+    if ! yq eval ".services.web.cap_add[] | select(. == \"$cap\")" "$RUSTDESK_COMPOSE" | grep -q "$cap"; then
+      echo "FAIL: rustdesk-server web missing cap_add $cap"
+      exit 1
+    fi
+  done
+  echo "✓ rustdesk-server web drops privileges via cap_add"
+  if yq eval '.services.web.cap_add[] | select(. == "NET_BIND_SERVICE")' "$RUSTDESK_COMPOSE" | grep -q NET_BIND_SERVICE; then
+    echo "FAIL: rustdesk-server web adds NET_BIND_SERVICE but listens on 8080"
+    exit 1
+  fi
+  echo "✓ rustdesk-server web does not add NET_BIND_SERVICE"
+  # app_proxy.APP_PORT must match the port the web service actually listens on.
+  if [ "$(yq eval '.services.app_proxy.environment.APP_PORT' "$RUSTDESK_COMPOSE" | tr -d '"')" != "$(yq eval '.services.web.expose[0]' "$RUSTDESK_COMPOSE" | tr -d '"')" ]; then
+    echo "FAIL: rustdesk-server APP_PORT does not match the web service listen port"
+    exit 1
+  fi
+  echo "✓ rustdesk-server APP_PORT matches the web listen port"
 else
   if grep -E "image:.*:[^ ]+" "$RUSTDESK_COMPOSE" | grep -v "@sha256:" | grep -v "^#"; then echo "FAIL: rustdesk-server unpinned"; exit 1; fi
   echo "✓ rustdesk-server images pinned"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q "no-new-privileges:true"; then echo "FAIL: rustdesk-server $svc missing no-new-privileges"; exit 1; fi
   done
   echo "✓ rustdesk-server no-new-privileges present"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q "read_only: true"; then echo "FAIL: rustdesk-server $svc missing read_only"; exit 1; fi
   done
   echo "✓ rustdesk-server read_only"
-  for svc in hbbs hbbr web app_proxy; do
+  for svc in hbbs hbbr web; do
     if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q -- "- ALL"; then echo "FAIL: rustdesk-server $svc missing cap_drop: ALL"; exit 1; fi
   done
   echo "✓ rustdesk-server cap_drop ALL"
-  for svc in hbbs hbbr web; do
+  for svc in hbbs hbbr; do
     if ! grep -A40 "  $svc:" "$RUSTDESK_COMPOSE" | grep -q 'user: "1000:1000"'; then echo "FAIL: rustdesk-server $svc must run as 1000:1000"; exit 1; fi
   done
-  echo "✓ rustdesk-server runs as 1000:1000"
+  echo "✓ rustdesk-server hbbs/hbbr run as 1000:1000"
+  if grep -A40 "  web:" "$RUSTDESK_COMPOSE" | grep -qE '^[[:space:]]+user:'; then
+    echo "FAIL: rustdesk-server web must not force a user (nginx drops privileges itself)"
+    exit 1
+  fi
+  echo "✓ rustdesk-server web does not force a user"
 fi
 if grep -q "privileged: true" "$RUSTDESK_COMPOSE"; then echo "FAIL: rustdesk-server privileged"; exit 1; fi
 echo "✓ rustdesk-server No privileged"
@@ -429,7 +504,57 @@ echo "✓ rustdesk-server No docker.sock"
 # rustdesk-server intentionally publishes host ports (21115-21119); this is required.
 if ! grep -Eq '^[[:space:]]+ports:' "$RUSTDESK_COMPOSE"; then echo "FAIL: rustdesk-server missing host ports (required for relay)"; exit 1; fi
 echo "✓ rustdesk-server host ports present (required)"
+# APP_HOST must be the Umbrel-injected container name <app-id>_<service>_1.
+# A stale name (e.g. upstream's) makes app_proxy unable to resolve the web
+# service, so the app opens to a broken page.
+if ! grep -q "APP_HOST: madutxo-rustdesk-server_web_1" "$RUSTDESK_COMPOSE"; then
+  echo "FAIL: rustdesk-server APP_HOST must be madutxo-rustdesk-server_web_1"
+  exit 1
+fi
+echo "✓ rustdesk-server APP_HOST matches app id"
+# app_proxy must stay environment-only (Umbrel app spec). In umbrelOS 2.0 no
+# app_proxy container runs at all, so it must carry no image and no runtime
+# keys, and must not publish or expose anything.
+if grep -A5 "  app_proxy:" "$RUSTDESK_COMPOSE" | grep -Eq '^[[:space:]]+(image|ports|expose|security_opt|cap_drop|cap_add|read_only|tmpfs|container_name|volumes):'; then
+  echo "FAIL: rustdesk-server app_proxy must be environment-only"
+  exit 1
+fi
+echo "✓ rustdesk-server app_proxy is environment-only"
+# The web UI is fronted by app_proxy. Raw-publishing the manifest port (21080)
+# or the internal port (80) collides with the app_proxy host port space.
+if grep -A40 "  web:" "$RUSTDESK_COMPOSE" | grep -Eq '^[[:space:]]+-[[:space:]]*"?[0-9]+:[0-9]+'; then
+  echo "FAIL: rustdesk-server web service must not raw-publish a host port (app_proxy fronts it)"
+  exit 1
+fi
+echo "✓ rustdesk-server web service publishes no host port"
+# nginx must end up with a server block. Either the image's conf.d is left
+# intact, or the package renders its own default.conf into the conf.d tmpfs.
+# Masking conf.d with an EMPTY tmpfs leaves nginx with zero server blocks: it
+# starts cleanly and serves nothing.
+if grep -A40 "  web:" "$RUSTDESK_COMPOSE" | grep -v '^[[:space:]]*#' | grep -q "/etc/nginx/conf.d"; then
+  if ! grep -q "default.conf" "$RUSTDESK_COMPOSE"; then
+    echo "FAIL: rustdesk-server masks /etc/nginx/conf.d but never writes a server block"
+    exit 1
+  fi
+  echo "✓ rustdesk-server renders its own nginx server block"
+else
+  echo "✓ rustdesk-server keeps the nginx image server block"
+fi
 if ! grep -q "network_mode: host" "$RUSTDESK_COMPOSE"; then echo "✓ rustdesk-server no network_mode: host"; else echo "FAIL: rustdesk-server uses network_mode: host"; exit 1; fi
+# umbrelOS refreshes hooks/ on update but not data/, so hooks/assets is the
+# update-path copy of the seeded web root. The two must stay byte-identical or
+# an update serves different markup than a fresh install.
+if ! cmp -s "$ROOT/madutxo-rustdesk-server/data/www/index.html" \
+  "$ROOT/madutxo-rustdesk-server/hooks/assets/index.html"; then
+  echo "FAIL: rustdesk-server hooks/assets/index.html is missing or out of date"
+  exit 1
+fi
+echo "✓ rustdesk-server web assets mirrored under hooks/assets"
+if ! grep -q "hooks/assets" "$ROOT/madutxo-rustdesk-server/hooks/post-start"; then
+  echo "FAIL: rustdesk-server hooks/post-start does not sync hooks/assets into app-data"
+  exit 1
+fi
+echo "✓ rustdesk-server hooks/post-start syncs web assets"
 if ! grep -q "dataRoot: data" "$RUSTDESK_APP"; then echo "FAIL: rustdesk-server missing storage.dataRoot"; exit 1; fi
 echo "✓ rustdesk-server storage root"
 
