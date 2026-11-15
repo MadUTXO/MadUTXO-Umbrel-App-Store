@@ -11,7 +11,8 @@ on:
       - 'madutxo-torlink/torlink-bg-seed.patch'
       - 'madutxo-torlink/torlink-deps.patch'
       - 'madutxo-torlink/torlink-test-isolation.patch'
-      - 'madutxo-torlink/hooks/**'
+      # hooks/ ships through the app package and is not COPYed into the image,
+      # so hook-only changes do not need a rebuild (same as electrs-liquid).
       - 'madutxo-torlink/router/**'
 
 jobs:
