@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# hbbs/hbbr run as 1000:1000 and write their keys below the data root. umbrelOS
+# normally creates that tree owned by 1000, but a restored or relocated data
+# root can leave it root-owned, and the servers then fail to write. Hand the
+# tree over once; the guarded check keeps a normal start from re-walking it.
+#
+# hooks/ is on the update whitelist but data/ is not, so this has to live here
+# rather than in the container command.
+
+APP_DIR="${APP_DATA_DIR:-$(readlink -f "$(dirname "$0")/..")}"
+DATA_DIR="${APP_DATA_ROOT:-${APP_DIR}/data}"
+
+for _dir in "${DATA_DIR}/hbbs" "${DATA_DIR}/hbbr" "${DATA_DIR}/www"; do
+	mkdir -p "$_dir"
+	if [ "$(stat -c %u "$_dir")" != "1000" ]; then
+		chown -R 1000:1000 "$_dir"
+	fi
+done

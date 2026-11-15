@@ -541,6 +541,22 @@ else
   echo "✓ rustdesk-server keeps the nginx image server block"
 fi
 if ! grep -q "network_mode: host" "$RUSTDESK_COMPOSE"; then echo "✓ rustdesk-server no network_mode: host"; else echo "FAIL: rustdesk-server uses network_mode: host"; exit 1; fi
+# hbbs/hbbr run as 1000:1000, so the data root must be handed over before the
+# containers start. hooks/ is update-whitelisted and data/ is not, so this has
+# to be a hook; the recursive chown must stay behind a uid check.
+if [ ! -x "$ROOT/madutxo-rustdesk-server/hooks/pre-start" ]; then
+  echo "FAIL: rustdesk-server hooks/pre-start missing or not executable"
+  exit 1
+fi
+if ! grep -q 'chown -R 1000:1000' "$ROOT/madutxo-rustdesk-server/hooks/pre-start"; then
+  echo "FAIL: rustdesk-server hooks/pre-start does not chown the data dir to 1000:1000"
+  exit 1
+fi
+if ! grep -q 'if \[ "$(stat -c %u "$_dir")" != "1000" \]' "$ROOT/madutxo-rustdesk-server/hooks/pre-start"; then
+  echo "FAIL: rustdesk-server hooks/pre-start must guard the chown behind a uid check"
+  exit 1
+fi
+echo "✓ rustdesk-server hooks/pre-start hands the data dir to uid 1000"
 # umbrelOS refreshes hooks/ on update but not data/, so hooks/assets is the
 # update-path copy of the seeded web root. The two must stay byte-identical or
 # an update serves different markup than a fresh install.
