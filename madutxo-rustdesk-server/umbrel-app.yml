@@ -40,6 +40,8 @@ releaseNotes: >-
     run as 1000:1000, bounded log rotation.
   - Web page auto-detects LAN vs NostrVPN mesh access and shows the correct
     IP for client configuration.
+  - The web page now sits behind the Umbrel login and no longer writes
+    per-request access logs.
 path: ""
 port: 21080
 defaultUsername: ""

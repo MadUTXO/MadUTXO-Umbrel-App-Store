@@ -261,6 +261,16 @@ elif grep -A40 "  main:" "$LIBRE_COMPOSE" | grep -q "read_only: true"; then
 else
   echo "FAIL: LibreTranslate main missing read_only:true"; exit 1
 fi
+# The baked model tree is ~1.2 GiB, so the recursive chown must stay guarded.
+if [ ! -x "$ROOT/madutxo-libretranslate/hooks/pre-start" ]; then
+  echo "FAIL: LibreTranslate hooks/pre-start missing or not executable"
+  exit 1
+fi
+if ! grep -q 'if \[ "$(stat -c %u "$STATE")" != "1000" \]' "$ROOT/madutxo-libretranslate/hooks/pre-start"; then
+  echo "FAIL: LibreTranslate hooks/pre-start must guard the chown behind a uid check"
+  exit 1
+fi
+echo "✓ LibreTranslate hook chown guarded"
 
 echo "--- onion address checks ---"
 # Onion addresses are secrets: a committed address exposes a live node. Fail on
@@ -350,6 +360,15 @@ echo "✓ torlink runtime hardening env present"
 if ! grep -q "STORAGE_DOWNLOADS" "$TORLINK_APP"; then echo "FAIL: torlink missing STORAGE_DOWNLOADS permission"; exit 1; fi
 if ! grep -q "dataRoot: data" "$TORLINK_APP"; then echo "FAIL: torlink missing storage.dataRoot"; exit 1; fi
 echo "✓ torlink downloads permission and storage root"
+if [ ! -x "$ROOT/madutxo-torlink/hooks/pre-start" ]; then
+  echo "FAIL: torlink hooks/pre-start missing or not executable"
+  exit 1
+fi
+if ! grep -q 'if \[ "$(stat -c %u "$STATE")" != "1000" \]' "$ROOT/madutxo-torlink/hooks/pre-start"; then
+  echo "FAIL: torlink hooks/pre-start must guard the chown behind a uid check"
+  exit 1
+fi
+echo "✓ torlink hook chown guarded"
 
 echo "--- routstrd checks ---"
 ROUTSTRD_COMPOSE="$ROOT/madutxo-routstrd/docker-compose.yml"
@@ -520,6 +539,11 @@ if grep -A5 "  app_proxy:" "$RUSTDESK_COMPOSE" | grep -Eq '^[[:space:]]+(image|p
   exit 1
 fi
 echo "✓ rustdesk-server app_proxy is environment-only"
+if ! grep -q 'PROXY_AUTH_ADD: "true"' "$RUSTDESK_COMPOSE"; then
+  echo "FAIL: rustdesk-server web page is reachable without the Umbrel login"
+  exit 1
+fi
+echo "✓ rustdesk-server web page sits behind the Umbrel login"
 # The web UI is fronted by app_proxy. Raw-publishing the manifest port (21080)
 # or the internal port (80) collides with the app_proxy host port space.
 if grep -A40 "  web:" "$RUSTDESK_COMPOSE" | grep -Eq '^[[:space:]]+-[[:space:]]*"?[0-9]+:[0-9]+'; then
@@ -540,6 +564,11 @@ if grep -A40 "  web:" "$RUSTDESK_COMPOSE" | grep -v '^[[:space:]]*#' | grep -q "
 else
   echo "✓ rustdesk-server keeps the nginx image server block"
 fi
+if ! grep -q "access_log off;" "$RUSTDESK_COMPOSE"; then
+  echo "FAIL: rustdesk-server web writes access logs for a static page"
+  exit 1
+fi
+echo "✓ rustdesk-server web does not log requests"
 if ! grep -q "network_mode: host" "$RUSTDESK_COMPOSE"; then echo "✓ rustdesk-server no network_mode: host"; else echo "FAIL: rustdesk-server uses network_mode: host"; exit 1; fi
 # hbbs/hbbr run as 1000:1000, so the data root must be handed over before the
 # containers start. hooks/ is update-whitelisted and data/ is not, so this has

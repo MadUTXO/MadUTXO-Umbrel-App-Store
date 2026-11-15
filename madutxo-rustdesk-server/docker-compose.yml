@@ -8,6 +8,9 @@ services:
     environment:
       APP_HOST: madutxo-rustdesk-server_web_1
       APP_PORT: 8080
+      # The page only shows the LAN/mesh IP and the public key, so keep it
+      # behind the Umbrel login like the other apps' proxies.
+      PROXY_AUTH_ADD: "true"
 
   hbbs:
     image: rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
@@ -129,6 +132,8 @@ services:
             root /usr/share/nginx/html;
             index index.html;
             server_tokens off;
+            # Static page: nothing worth persisting, and the log lives on tmpfs.
+            access_log off;
 
             add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none';" always;
             add_header X-Frame-Options "DENY" always;
