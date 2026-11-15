@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: RustDesk Server
-version: "1.1.16"
+version: "1.1.16-2"
 tagline: Self-hosted RustDesk ID and relay server
 description: >-
   RustDesk is an open-source, self-hosted remote desktop server. This package
@@ -30,7 +30,8 @@ repo: https://github.com/rustdesk/rustdesk-server
 support: https://github.com/rustdesk/rustdesk/issues
 gallery: []
 releaseNotes: >-
-  1.1.16:
+  1.1.16-2:
+  - App-level release on the same 1.1.16 image; no image change.
   - Ported from umbrel-apps/community with MadUTXO security hardening.
   - Replaced network_mode: host with explicit port publishing so the app works
     on Umbrel's bridged network and is reachable via NostrVPN mesh IP.
