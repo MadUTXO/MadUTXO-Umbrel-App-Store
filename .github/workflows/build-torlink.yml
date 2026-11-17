@@ -38,7 +38,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build and push 1.11.8
+      - name: Build and push 1.11.9
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
           context: ./madutxo-torlink
@@ -46,13 +46,13 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/madutxo/torlink:1.11.8
+            ghcr.io/madutxo/torlink:1.11.9
           labels: |
             org.opencontainers.image.title=torlink
             org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
             com.madutxo.upstream.source=https://github.com/baairon/torlink
-            org.opencontainers.image.revision=394b0b662b0ab2b390846d98aaf56031f6b8dcad
-            org.opencontainers.image.version=1.11.8
+            org.opencontainers.image.revision=5e89f6fd067c28f2c091c4beb9a82838e1b34cc5
+            org.opencontainers.image.version=1.11.9
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
@@ -63,7 +63,7 @@ jobs:
         # unavailable (HTTP 000/504). Must not fail an otherwise-good release.
         continue-on-error: true
         with:
-          image: ghcr.io/madutxo/torlink:1.11.8
+          image: ghcr.io/madutxo/torlink:1.11.9
 
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -77,7 +77,7 @@ jobs:
         # Supplemental: non-blocking, same rationale as the SBOM step.
         continue-on-error: true
         with:
-          image-ref: 'ghcr.io/madutxo/torlink:1.11.8'
+          image-ref: 'ghcr.io/madutxo/torlink:1.11.9'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'

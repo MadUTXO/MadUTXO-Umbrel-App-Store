@@ -2,10 +2,11 @@
 
 FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d AS build
 
-# Pinned upstream commit (baairon/torlink v1.11.0). The commit is unsigned;
-# accepted because the build fixes it by SHA, the image is digest-pinned, and
-# the runtime never re-fetches upstream (TORLINK_NO_UPDATE_CHECK=1).
-ARG TORLINK_SHA=394b0b662b0ab2b390846d98aaf56031f6b8dcad
+# Pinned upstream commit (baairon/torlink v1.11.1 release commit). The tag
+# commit and the feature commit it releases (#216) are unsigned; accepted
+# because the build fixes it by SHA, the image is digest-pinned, and the
+# runtime never re-fetches upstream (TORLINK_NO_UPDATE_CHECK=1).
+ARG TORLINK_SHA=5e89f6fd067c28f2c091c4beb9a82838e1b34cc5
 ARG TARGETARCH
 ARG TTYD_VERSION=1.7.7
 

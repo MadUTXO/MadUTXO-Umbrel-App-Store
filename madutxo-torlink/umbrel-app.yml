@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: TorLink
-version: "1.11.8"
+version: "1.11.9"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -40,11 +40,24 @@ description: >-
       with FitGirl as the game-repack source. Movies, TV, and Anime remain
       available too.
 
-    - Settings and queue state persist across restarts.
+    - Settings and queue state persist across restarts. The app data folder
+      also holds a small socket file (`handoff.sock`) that a launch uses to hand
+      a magnet to the open window; it is recreated automatically.
 
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
+  1.11.9:
+  - Base updated to upstream v1.11.1.
+  - A magnet or .torrent opened while torlink is already running is now added
+    to that window instead of starting a second one.
+  - Searches that retry a failing source no longer leave its unfinished
+    response holding a socket and memory, so repeated searches stay light.
+  - New local socket in the app data folder for that hand-over. It is not
+    reachable from the network, and a stale one (for example after a restore)
+    is replaced on the next start.
+  - Rebuilt image (build target 1.11.9), pinned by digest.
+
   1.11.8:
   - Security: the writable terminal is now isolated from co-resident apps.
     ttyd binds only to 127.0.0.1:7682; the app port (7681) is served by a new
