@@ -50,7 +50,7 @@ jobs:
             org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=0.5.5
-            com.madutxo.gatekeeper.revision=bd581f0de960ee9f736221a2cbfab1a32a7746bb
+            com.madutxo.gatekeeper.revision=69a6b9a17e34d6bc36a2dcba848f3554916f0216
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
