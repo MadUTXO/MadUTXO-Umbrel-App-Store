@@ -53,9 +53,9 @@ FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae
 # CVE-2026-123007, CVE-2026-123633). Pin the exact package version.
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ca-certificates curl tmux \
-    && curl -fsSLo /usr/share/keyrings/nginx-archive-keyring.gpg \
-        https://nginx.org/keys/nginx_signing.key \
+        ca-certificates curl tmux gnupg \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key \
+        | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx" \
         > /etc/apt/sources.list.d/nginx.list \
     && printf 'Package: *\nPin: origin nginx.org\nPin-Priority: 510\n' \

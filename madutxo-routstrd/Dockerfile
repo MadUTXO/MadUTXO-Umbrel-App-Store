@@ -65,9 +65,9 @@ RUN apt-get update \
         -o Dpkg::Options::=--force-confold \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         -o Dpkg::Options::=--force-confold \
-        ca-certificates curl supervisor tmux \
-    && curl -fsSLo /usr/share/keyrings/nginx-archive-keyring.gpg \
-        https://nginx.org/keys/nginx_signing.key \
+        ca-certificates curl supervisor tmux gnupg \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key \
+        | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx" \
         > /etc/apt/sources.list.d/nginx.list \
     && printf 'Package: *\nPin: origin nginx.org\nPin-Priority: 510\n' \
