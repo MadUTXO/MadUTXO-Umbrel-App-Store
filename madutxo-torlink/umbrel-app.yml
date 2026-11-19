@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: TorLink
-version: "1.11.9"
+version: "1.11.10"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -47,6 +47,11 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
+  1.11.10:
+  - Security fixes for the built-in web server (nginx 1.30.7, Nginx2Root).
+    App behaviour is unchanged; the image was rebuilt from the same source.
+  - Rebuilt image (build target 1.11.10), pinned by digest.
+
   1.11.9:
   - Base updated to upstream v1.11.1.
   - A magnet or .torrent opened while torlink is already running is now added

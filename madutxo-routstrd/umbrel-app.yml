@@ -10,7 +10,7 @@ environment:
     note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstrd Remote
-version: "0.5.5"
+version: "0.5.6"
 tagline: Self-hosted Routstr AI router with a Cashu wallet
 description: >-
   Routstrd Remote is the official Dockerized Routstrd instance for teams. It runs
@@ -29,6 +29,12 @@ description: >-
   treat them like the wallet itself.
   
 releaseNotes: >-
+  0.5.6:
+  - Security fixes for the built-in web server (nginx 1.30.7, Nginx2Root).
+    Route allowlisting and app behaviour are unchanged; the image was
+    rebuilt from the same source.
+  - Rebuilt image (build target 0.5.6), pinned by digest.
+
   0.5.5:
   - Security: API keys are now restricted to the inference surface by an
     allowlist. Previously the block list covered known management routes;
