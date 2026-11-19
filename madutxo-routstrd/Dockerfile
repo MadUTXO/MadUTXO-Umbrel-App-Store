@@ -56,12 +56,26 @@ ARG TTYD_VERSION=1.7.7
 # tmux (persistent terminal session), curl (healthcheck), ca-certificates.
 # Upgrade the base packages at build time so the image does not ship the base
 # layer's stale Debian CVE inventory (routstrd-findings F-R-01).
+#
+# nginx comes from nginx.org, the official upstream build: Debian bookworm
+# only ships 1.22.1, with no fix for the 2026-11 HTTP/2 CVEs (Nginx2Root:
+# CVE-2026-123007, CVE-2026-123633). Pin the exact package version.
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
         -o Dpkg::Options::=--force-confold \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         -o Dpkg::Options::=--force-confold \
-        ca-certificates curl nginx supervisor tmux \
+        ca-certificates curl supervisor tmux \
+    && curl -fsSLo /usr/share/keyrings/nginx-archive-keyring.gpg \
+        https://nginx.org/keys/nginx_signing.key \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx" \
+        > /etc/apt/sources.list.d/nginx.list \
+    && printf 'Package: *\nPin: origin nginx.org\nPin-Priority: 510\n' \
+        > /etc/apt/preferences.d/nginx.pref \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        -o Dpkg::Options::=--force-confold \
+        nginx=1.30.7-1~bookworm \
     && rm -rf /var/lib/apt/lists/*
 
 # Use the x64-baseline Bun build on amd64 so older CPUs without AVX2 do not

@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "1.0.2"
+version: "1.0.3"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -42,6 +42,9 @@ description: >-
 
 
 releaseNotes: >-
+  Security fixes in the built-in web server (nginx 1.30.7); no changes to
+  Electrs Liquid itself.
+
   Optional Tor switch: in App Settings you can now turn the Tor hidden service
   off for this app. That stops Tor inside the app; local Electrum connections on
   port 60601 keep working, and turning it back on restores the same address.

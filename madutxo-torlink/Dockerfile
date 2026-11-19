@@ -48,9 +48,21 @@ RUN case "${TARGETARCH}" in \
 
 FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d AS runtime
 
+# nginx comes from nginx.org, the official upstream build: Debian bookworm
+# only ships 1.22.1, with no fix for the 2026-11 HTTP/2 CVEs (Nginx2Root:
+# CVE-2026-123007, CVE-2026-123633). Pin the exact package version.
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ca-certificates nginx tmux \
+        ca-certificates curl tmux \
+    && curl -fsSLo /usr/share/keyrings/nginx-archive-keyring.gpg \
+        https://nginx.org/keys/nginx_signing.key \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx" \
+        > /etc/apt/sources.list.d/nginx.list \
+    && printf 'Package: *\nPin: origin nginx.org\nPin-Priority: 510\n' \
+        > /etc/apt/preferences.d/nginx.pref \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        nginx=1.30.7-1~bookworm \
     && rm -rf /var/lib/apt/lists/*
 
 # The app runs only `node`; npm/npx/corepack are unused and their bundled
