@@ -65,8 +65,20 @@ RUN apt-get update \
         nginx=1.30.7-1~bookworm \
     && rm -rf /var/lib/apt/lists/*
 
-# The app runs only `node`; npm/npx/corepack are unused and their bundled
-# dependency tree carries fixable HIGH advisories. Drop them from the runtime.
+# The node:slim base ships python3 (for build-time node-gyp) with
+# libsqlite3-0, which is affected by CVE-2025-7458 (bookworm has no fix).
+# Nothing in the runtime uses python3 or sqlite, so remove them entirely;
+# this also shrinks the image. Runtime only runs node + ttyd + nginx + tmux.
+RUN apt-get purge -y --auto-remove \
+        python3 python3-minimal python3-stdlib-extensions \
+        python3.11 python3.11-minimal \
+        libpython3.11-stdlib libpython3.11-minimal \
+        libsqlite3-0 \
+    || apt-get purge -y --auto-remove libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# npm/npx/corepack are unused at runtime; their bundled dependency tree
+# carries fixable HIGH advisories, so drop them.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
