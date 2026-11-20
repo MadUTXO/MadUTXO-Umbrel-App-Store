@@ -1,0 +1,10 @@
+.git
+.dockerignore
+.trivyignore
+data
+hooks
+web
+icon.svg
+umbrel-app.yml
+torrc.template
+*.md
