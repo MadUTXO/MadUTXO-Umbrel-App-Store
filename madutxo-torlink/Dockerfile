@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d AS build
+FROM node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS build
 
 # Pinned upstream commit (baairon/torlink v1.11.1 release commit). The tag
 # commit and the feature commit it releases (#216) are unsigned; accepted
@@ -46,7 +46,7 @@ RUN case "${TARGETARCH}" in \
     && chmod 0755 /usr/local/bin/ttyd \
     && ttyd --version
 
-FROM node:22-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d AS runtime
+FROM node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS runtime
 
 # nginx comes from nginx.org, the official upstream build: Debian bookworm
 # only ships 1.22.1, with no fix for the 2026-11 HTTP/2 CVEs (Nginx2Root:

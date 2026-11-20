@@ -4,7 +4,7 @@ storage:
   dataRoot: data
 category: networking
 name: TorLink
-version: "1.11.11"
+version: "1.11.12"
 tagline: Search and download movies, TV, and anime from your browser
 description: >-
   torlink is a terminal-native torrent finder and downloader, packaged for
@@ -47,6 +47,13 @@ description: >-
     - Concurrent downloads are capped at 3. In-app update checks are disabled;
     updates arrive through the app store.
 releaseNotes: >-
+  1.11.12:
+  - Base image refreshed to Node 22.23.5 with the current Debian 12 security
+    packages. App behaviour is unchanged; the image was rebuilt from the same
+    torlink source.
+  - The cosmetic nginx startup alert is gone; nginx errors go straight to the
+    container log.
+
   1.11.11:
   - Restart policy aligned with the other apps. No image or behaviour change.
 

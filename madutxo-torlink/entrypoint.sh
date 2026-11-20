@@ -30,7 +30,7 @@ fi
 # source in the shared app bridge (10.21.0.0/16) except the Umbrel gateway, so a
 # co-resident container cannot reach the writable terminal even by forging
 # Host/Origin. -O is kept as defense-in-depth for browser cross-origin attacks.
-nginx -g 'daemon off;' &
+nginx -e /dev/stderr -g 'daemon off;' &
 NGINX_PID=$!
 
 ttyd -O -W -p 7682 -i 127.0.0.1 -w /app -t disableLeaveAlert=true -t title=TorLink node /app/dist/cli.cjs attach &
