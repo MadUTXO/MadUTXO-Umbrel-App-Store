@@ -39,6 +39,7 @@ esac
 if [ "${#rpc_hidden_service}" -ne 62 ]; then
   rpc_hidden_service=""
 fi
+if [ "${ELECTRS_TOR_ENABLED:-true}" = "false" ]; then rpc_hidden_service=""; fi
 export APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE="$rpc_hidden_service"
 
 

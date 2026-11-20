@@ -22,6 +22,8 @@ services:
   web:
     image: nginx:1.30.7-alpine@sha256:bef154735288bc38d99fac41ae63730684bcc661503673a04a0f9bc526ba8598
     restart: on-failure
+    mem_limit: 128m
+    pids_limit: 64
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -182,6 +184,8 @@ services:
     image: ghcr.io/getumbrel/tor:0.4.9.14@sha256:7663d18fe37b3edd97c859aa36bb5eeaa328d86c57729db0433dff430e8abd8d
     user: "1000:1000"
     restart: on-failure
+    mem_limit: 256m
+    pids_limit: 128
     # tor resolves the electrs container name when it parses HiddenServicePort,
     # so without ordering it fails on a cold stack start and only comes up on
     # the restart. It needs the name to exist, not electrs to be healthy.
