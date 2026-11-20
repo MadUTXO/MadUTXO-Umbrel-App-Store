@@ -31,8 +31,8 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp
-      - /run
+      - /tmp:size=512m
+      - /run:size=16m
     expose:
       - "3066"
     healthcheck:
