@@ -42,11 +42,12 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data/hbbs:/root:rw
     healthcheck:
-      # 21115 == 0x527B. Read the kernel socket tables instead of shelling out
-      # to ss, which the upstream image does not ship (tcp6 covers IPv6 binds).
-      test: ["CMD-SHELL", "cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | grep -qi ':527B' || exit 1"]
+      # The upstream image has no shell, so a CMD-SHELL check can never run.
+      # Exec the binary: it proves the executable starts, not that the listener
+      # is bound.
+      test: ["CMD", "/usr/bin/hbbs", "--version"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
       start_period: 10s
     depends_on:
@@ -80,10 +81,10 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data/hbbr:/root:rw
     healthcheck:
-      # 21117 == 0x527D
-      test: ["CMD-SHELL", "cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | grep -qi ':527D' || exit 1"]
+      # Same exec-only check as hbbs; the image has no shell.
+      test: ["CMD", "/usr/bin/hbbr", "--version"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
       start_period: 10s
 
