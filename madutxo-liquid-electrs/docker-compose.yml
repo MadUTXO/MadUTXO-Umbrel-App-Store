@@ -101,7 +101,7 @@ services:
       - electrs
 
   electrs:
-    image: ghcr.io/madutxo/electrs-liquid:0.6.10@sha256:e6fdee53a05dc69518aca82b6c02114888f50f26218da8b55a64cb5d7f8ab37d
+    image: ghcr.io/madutxo/electrs-liquid:0.6.11@sha256:36c224ece01bd9c8dfa490f898d7bef274a2f985db3320c634562c389531e05b
     # Runs as uid 1000 like every other service. hooks/pre-start hands /data to
     # uid 1000 on the host before the container starts, so the entrypoint needs
     # no root and no capabilities. The root fallback only matters for a manual

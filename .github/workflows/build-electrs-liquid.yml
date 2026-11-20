@@ -61,7 +61,7 @@ jobs:
           provenance: true
 
       - name: Report image digest
-        run: echo "electrs-liquid:0.6.10 digest = ${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
+        run: echo "electrs-liquid:0.6.11 digest = ${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Generate SBOM
         uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
