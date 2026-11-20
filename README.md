@@ -25,11 +25,22 @@ sudo ./scripts/app install https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
 
 ## Apps
 
-- **Electrs Liquid** — personal Electrum server for the Liquid Network.
-- **LibreTranslate** — self-hosted machine translation.
-- **Routstrd** — Routstr daemon and terminal.
-- **RustDesk Server** — self-hosted RustDesk ID and relay server.
-- **TorLink** — Torrent client with a web UI.
+| App | Upstream | License |
+|---|---|---|
+| Electrs Liquid | `Blockstream/electrs` | MIT |
+| LibreTranslate | `LibreTranslate/LibreTranslate` | AGPL-3.0 |
+| Routstrd | `Routstr/routstrd-remote` | unknown (no license file found) |
+| RustDesk Server | `rustdesk/rustdesk-server` | AGPL-3.0 |
+| TorLink | `baairon/torlink` | MIT |
+
+AGPL apps are run as separate services; the packaging files here are MIT.
+
+## Backups, updates and rollback
+
+- Umbrel app-data backups include each app's `/data`. For Routstrd that means the wallet database and the mnemonic — keep backups private and treat them like the wallet.
+- Uninstalling deletes app data, including wallets and keys. Back up before uninstalling.
+- Updates keep app data. The store ships digest-pinned images; an update is an explicit version bump.
+- Rollback: reinstall the previous version from the store history and restore its data from a backup if the update migrated it. Electrs and LibreTranslate reuse their index/data across versions; Routstrd wallet migrations are forward-only, so restore the matching backup.
 
 ## Need Help?
 
