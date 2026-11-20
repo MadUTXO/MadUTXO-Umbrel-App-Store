@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="${LINT_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 COMPOSE="$ROOT/madutxo-liquid-electrs/docker-compose.yml"
 INDEX="$ROOT/madutxo-liquid-electrs/web/index.html"
 # Umbrel silently drops every app whose id does not start with the store id

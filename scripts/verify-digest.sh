@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="${LINT_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 COMPOSE="$ROOT/madutxo-liquid-electrs/docker-compose.yml"
 DOCKERFILE="$ROOT/madutxo-liquid-electrs/Dockerfile"
 APP_YML="$ROOT/madutxo-liquid-electrs/umbrel-app.yml"

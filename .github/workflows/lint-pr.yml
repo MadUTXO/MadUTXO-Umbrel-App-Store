@@ -1,0 +1,73 @@
+name: Lint PR
+
+# pull_request_target so fork PRs lint without approval. Tooling comes from the
+# trusted base; the PR tree is treated as data only.
+
+on:
+  pull_request_target:
+    branches: [master]
+    paths:
+      - 'madutxo-liquid-electrs/**'
+      - 'madutxo-libretranslate/**'
+      - 'madutxo-torlink/**'
+      - 'madutxo-routstrd/**'
+      - 'madutxo-rustdesk-server/**'
+      - 'scripts/lint.sh'
+      - 'scripts/verify-digest.sh'
+
+concurrency:
+  group: lint-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout trusted tooling
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.base_ref }}
+          path: trusted
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout PR tree
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: submission
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install yq
+        run: |
+          wget -qO /tmp/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          echo "a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7  /tmp/yq" | sha256sum -c -
+          sudo install -m 0755 /tmp/yq /usr/local/bin/yq
+
+      - name: Run security lint
+        env:
+          LINT_ROOT: ${{ github.workspace }}/submission
+        run: bash trusted/scripts/lint.sh
+
+      - name: Verify digest pin
+        env:
+          LINT_ROOT: ${{ github.workspace }}/submission
+        run: bash trusted/scripts/verify-digest.sh
+
+      - name: Validate compose
+        working-directory: submission
+        run: |
+          for app in madutxo-liquid-electrs madutxo-libretranslate madutxo-torlink madutxo-routstrd madutxo-rustdesk-server; do
+            yq eval 'del(.services.app_proxy)' "$app/docker-compose.yml" > "/tmp/compose.$app.yml"
+          done
+          APP_DATA_DIR=/tmp TOR_DATA_DIR=/tmp APP_VERSION=1.0.3 APP_ELECTRS_LIQUID_RPC_HIDDEN_SERVICE=dummy.onion APP_ELECTRS_LIQUID_ELEMENTS_RPC_PASS=dummy docker compose -f /tmp/compose.madutxo-liquid-electrs.yml config >/dev/null
+          APP_DATA_DIR=/tmp docker compose -f /tmp/compose.madutxo-libretranslate.yml config >/dev/null
+          APP_DATA_DIR=/tmp UMBREL_ROOT=/tmp docker compose -f /tmp/compose.madutxo-torlink.yml config >/dev/null
+          APP_DATA_DIR=/tmp APP_MADUTXO_ROUTSTRD_MODEL_ALLOWLIST=true docker compose -f /tmp/compose.madutxo-routstrd.yml config >/dev/null
+          APP_DATA_DIR=/tmp docker compose -f /tmp/compose.madutxo-rustdesk-server.yml config >/dev/null
