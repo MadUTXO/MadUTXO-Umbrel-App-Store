@@ -5,8 +5,8 @@ services:
       APP_PORT: 3066
       # API + management paths bypass Umbrel login so agents (API keys) and
       # remote NIP-98 clients can reach the gatekeeper, which authenticates.
-      # /settings/* and /cooldowns/* are intentionally excluded (the gatekeeper
-      # does not restrict them for Bearer keys).
+      # /settings/* and /cooldowns/* are intentionally excluded so they stay
+      # behind the Umbrel login; keyed requests are refused at nginx anyway.
       PROXY_AUTH_WHITELIST: "/v1/*,/models,/models/*,/health,/ping,/npubs,/clients,/clients/*,/usage,/usage/*,/wallet/*,/nwc/*,/stop,/refund,/refund/xcashu,/providers,/providers/*"
     security_opt:
       - no-new-privileges:true

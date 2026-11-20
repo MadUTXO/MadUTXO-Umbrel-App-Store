@@ -10,7 +10,7 @@ environment:
     note: "Your Nostr public key (npub1...). It is added as an admin identity so you can manage this node from your own devices. Changing this restarts the app."
 category: ai
 name: Routstrd Remote
-version: "0.5.7"
+version: "0.5.8"
 tagline: Self-hosted Routstr AI router with a Cashu wallet
 description: >-
   Routstrd Remote is the official Dockerized Routstrd instance for teams. It runs
@@ -29,6 +29,23 @@ description: >-
   treat them like the wallet itself.
   
 releaseNotes: >-
+  0.5.8:
+  - Security hardening of the built-in auth proxy (gatekeeper):
+    - API keys whose owner npub was removed are now refused.
+    - NIP-98 logins must match the public URL, and each signed login is
+      single-use.
+    - Daemon routes that are not on the reviewed list are refused by default.
+    - The last remaining admin can no longer be removed.
+    - A bare instance needs a one-time token to claim its first admin. This
+      app always pre-seeds an admin, so Umbrel installs need no action.
+  - Removing an npub from App Settings now demotes it to a normal user instead
+    of deleting it, so its existing API keys keep working. To cut it off
+    completely, run `routstrd npubs delete <npub>` in the terminal.
+  - The bundled CLI predates the new single-use login check: the identical
+    command twice within the same second can answer "nip98_replayed"; run it
+    again. This does not affect agents using API keys.
+  - nginx no longer logs a cosmetic startup alert.
+
   0.5.7:
   - Bound the container's temporary storage so a large request cannot use the
     whole memory budget.

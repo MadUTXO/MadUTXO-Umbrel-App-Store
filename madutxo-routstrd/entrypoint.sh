@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+# Keep anything created before the hooks tighten permissions private.
+umask 077
 
 export ROUTSTRD_DIR="${ROUTSTRD_DIR:-/data/routstrd}"
 export HOME="${HOME:-/data/home}"

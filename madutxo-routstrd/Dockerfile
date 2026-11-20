@@ -9,7 +9,7 @@ FROM oven/bun:1.4.4-slim@sha256:1846adf22496bd711036aae8be147e57bdebbaea2e5264e3
 
 USER root
 
-ARG ROUTSTRD_REMOTE_SHA=69a6b9a17e34d6bc36a2dcba848f3554916f0216
+ARG ROUTSTRD_REMOTE_SHA=1e7bb3ab37f6e3e6f6298ac1c88d62b92b1c2bf8
 # routstrd daemon/CLI tarball + SHA-512 (npm dist.integrity) for integrity pin.
 ARG ROUTSTRD_VERSION=0.5.1
 ARG ROUTSTRD_SHA512=qlEbnkXvXE2XatC75s8qndILLAJqLltX3zG6gbyOlSxZZeWRguQb1scaY+A0qtC385teiyqd6k4gnDOuhDIZUg==
