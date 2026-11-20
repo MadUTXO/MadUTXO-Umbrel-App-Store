@@ -31,7 +31,7 @@ jobs:
         run: bash scripts/check-scan-target.sh .github/workflows/scan-rustdesk.yml madutxo-rustdesk-server/docker-compose.yml
 
       - name: Trivy scan (fail on CRITICAL)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
         with:
           image-ref: 'rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00'
           format: 'table'

@@ -65,7 +65,7 @@ jobs:
           provenance: true
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
         # Supplemental: its tool download from GitHub releases is occasionally
         # unavailable (HTTP 000/504). Must not fail an otherwise-good release.
         continue-on-error: true
@@ -80,7 +80,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
         # Supplemental: non-blocking, same rationale as the SBOM step.
         continue-on-error: true
         with:

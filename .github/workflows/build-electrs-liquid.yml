@@ -64,7 +64,7 @@ jobs:
         run: echo "electrs-liquid:0.6.10 digest = ${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
+        uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
         with:
           image: ghcr.io/madutxo/electrs-liquid:0.6.11
 
@@ -75,7 +75,7 @@ jobs:
           path: sbom*
 
       - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
         with:
           image-ref: 'ghcr.io/madutxo/electrs-liquid:0.6.11'
           format: 'sarif'
