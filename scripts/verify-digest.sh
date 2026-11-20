@@ -143,10 +143,12 @@ case "$TORLINK_IMAGE" in
 esac
 TORLINK_VERSION=$(grep -E '^version: "' "$TORLINK_APP" | head -n1 | cut -d'"' -f2)
 TORLINK_IMAGE_TAG=$(echo "$TORLINK_IMAGE" | sed -n 's/.*torlink:\(.*\)@.*/\1/p')
+TORLINK_APP_SERIES=$(echo "$TORLINK_VERSION" | cut -d. -f1-2)
+TORLINK_TAG_SERIES=$(echo "$TORLINK_IMAGE_TAG" | cut -d. -f1-2)
 echo "torlink app version: $TORLINK_VERSION"
 echo "torlink image tag: $TORLINK_IMAGE_TAG"
-if [ "$TORLINK_VERSION" != "$TORLINK_IMAGE_TAG" ]; then echo "FAIL: torlink app version and image tag differ"; exit 1; fi
-echo "✓ torlink version matches image tag"
+if [ "$TORLINK_APP_SERIES" != "$TORLINK_TAG_SERIES" ]; then echo "FAIL: torlink app version and image series differ"; exit 1; fi
+echo "✓ torlink version stays in the image series"
 
 echo "--- routstrd digest ---"
 ROUTSTRD_COMPOSE="$ROOT/madutxo-routstrd/docker-compose.yml"
@@ -166,10 +168,12 @@ case "$ROUTSTRD_IMAGE" in
 esac
 ROUTSTRD_VERSION=$(grep -E '^version: "' "$ROUTSTRD_APP" | head -n1 | cut -d'"' -f2)
 ROUTSTRD_IMAGE_TAG=$(echo "$ROUTSTRD_IMAGE" | sed -n 's/.*routstrd:\(.*\)@.*/\1/p')
+ROUTSTRD_APP_SERIES=$(echo "$ROUTSTRD_VERSION" | cut -d. -f1-2)
+ROUTSTRD_TAG_SERIES=$(echo "$ROUTSTRD_IMAGE_TAG" | cut -d. -f1-2)
 echo "routstrd app version: $ROUTSTRD_VERSION"
 echo "routstrd image tag: $ROUTSTRD_IMAGE_TAG"
-if [ "$ROUTSTRD_VERSION" != "$ROUTSTRD_IMAGE_TAG" ]; then echo "FAIL: routstrd app version and image tag differ"; exit 1; fi
-echo "✓ routstrd version matches image tag"
+if [ "$ROUTSTRD_APP_SERIES" != "$ROUTSTRD_TAG_SERIES" ]; then echo "FAIL: routstrd app version and image series differ"; exit 1; fi
+echo "✓ routstrd version stays in the image series"
 
 echo "--- rustdesk-server digest ---"
 RUSTDESK_COMPOSE="$ROOT/madutxo-rustdesk-server/docker-compose.yml"

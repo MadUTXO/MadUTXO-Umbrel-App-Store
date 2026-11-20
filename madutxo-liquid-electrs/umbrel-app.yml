@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "1.0.3"
+version: "1.0.4"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -42,6 +42,11 @@ description: >-
 
 
 releaseNotes: >-
+  1.0.4:
+  - The status page no longer shows an onion address when the app's Tor
+    setting is off.
+  - The web and Tor sidecars now have memory and process limits.
+
   Security fixes in the built-in web server (nginx 1.30.7); no changes to
   Electrs Liquid itself.
 
