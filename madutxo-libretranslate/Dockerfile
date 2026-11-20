@@ -19,7 +19,45 @@
 # only. They are never re-downloaded, and an existing install is never
 # overwritten.
 #
+# The bake is split into small per-pair layers because GHCR truncated the
+# single ~1.2 GiB layer on pull (unexpected EOF). Six pair layers and one
+# MiniSBD layer keep each blob small; the builder stage itself is not shipped,
+# so there is no duplicate model layer.
+#
 # Build: .github/workflows/build-libretranslate.yml (multi-arch)
+
+FROM libretranslate/libretranslate:v1.9.6@sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32 AS models
+
+USER root
+
+ENV ARGOS_PACKAGE_INDEX=https://raw.githubusercontent.com/argosopentech/argospm-index/ff90de60728f7c1338ff6b75974e4c89b2442d22/ \
+    XDG_CACHE_HOME=/seed/cache \
+    XDG_CONFIG_HOME=/seed/config
+
+# One unordered pair per run: install_models installs both directions. The
+# pinned index has exactly these six unordered pairs among the six load-only
+# languages, so the result is the same 12 packages as one 6-language run.
+RUN set -eu; \
+    for pair in de-en en-es en-fr en-it en-pt es-pt; do \
+        echo "baking $pair"; \
+        XDG_DATA_HOME="/seed/pairs/$pair" \
+        /app/venv/bin/python /app/scripts/install_models.py \
+            --load_only_lang_codes="${pair%-*},${pair#*-}"; \
+    done
+
+# MiniSBD models are shared by language, not by pair, so they get one small layer.
+# Normalise the location in case the library ignores XDG_CACHE_HOME.
+RUN set -eu; XDG_DATA_HOME=/seed/pairs/de-en \
+    /app/venv/bin/python -c \
+    'from minisbd import download_models; download_models(["en","es","fr","de","it","pt"], print)'; \
+    out=/seed/minisbd-out; \
+    mkdir -p "$out"; \
+    for src in /seed/cache/minisbd /root/.cache/minisbd /home/libretranslate/.cache/minisbd; do \
+        [ -d "$src" ] && cp -a "$src/." "$out/"; \
+    done; \
+    test "$(find "$out" -name '*.onnx' | wc -l)" -ge 6
+
+RUN chmod -R a+rX /seed
 
 FROM libretranslate/libretranslate:v1.9.6@sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32
 
@@ -37,24 +75,18 @@ RUN apt-get update \
 RUN /app/venv/bin/pip install --no-cache-dir "Werkzeug==3.0.6" "certifi==2026.10.23" \
  && /app/venv/bin/pip uninstall -y waitress
 
-# LT-02 / LT-18: bake the Argos pairs and MiniSBD models for the six load-only
-# languages. install_models.py is upstream's own script, so the result matches
-# a first boot. The package index is pinned to an argospm-index commit. Write,
-# permissions and the sanity check all happen in this single layer to avoid the
-# duplicate ~1.2 GiB layer that made the earlier bake 2.54 GiB.
+# Small model layers from the builder stage.
+COPY --from=models /seed/pairs/de-en/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-es/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-fr/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-it/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-pt/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/es-pt/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/minisbd-out/ /opt/lt-seed/share/argos-translate/minisbd/
+
+# Metadata-only layer: permissions and the same sanity check as before.
 RUN set -eu; \
-    export XDG_DATA_HOME=/opt/lt-seed/share \
-           XDG_CONFIG_HOME=/opt/lt-seed/config \
-           XDG_CACHE_HOME=/opt/lt-seed/cache \
-           ARGOS_PACKAGE_INDEX=https://raw.githubusercontent.com/argosopentech/argospm-index/ff90de60728f7c1338ff6b75974e4c89b2442d22/ \
-           LT_LOAD_ONLY=en,es,fr,de,it,pt; \
-    /app/venv/bin/python /app/scripts/install_models.py \
-        --load_only_lang_codes=en,es,fr,de,it,pt; \
     seed=/opt/lt-seed/share/argos-translate; \
-    mkdir -p "$seed/minisbd"; \
-    for src in /root/.cache/minisbd /home/libretranslate/.cache/minisbd; do \
-        if [ -d "$src" ]; then cp -a "$src/." "$seed/minisbd/"; fi; \
-    done; \
     p="$seed/packages"; \
     n=$(find "$p" -mindepth 2 -maxdepth 2 -name metadata.json | wc -l); \
     m=$(find "$seed/minisbd" -name '*.onnx' | wc -l); \

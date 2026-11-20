@@ -3,7 +3,7 @@ id: madutxo-libretranslate
 category: tools
 name: LibreTranslate
 icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-libretranslate/icon.png
-version: "1.9.11"
+version: "1.9.12"
 tagline: Free and Open Source Machine Translation API
 description: >-
   LibreTranslate is a free and open source machine translation API.
@@ -33,6 +33,12 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 releaseNotes: >-
+  1.9.12:
+  - Rebuild the bundled language models into several smaller image layers, so
+    a fresh install no longer stops partway through the download with an
+    unexpected end-of-file from the registry. Same six languages and the same
+    pinned model index; no app or data change.
+
   1.9.11:
   - The local app address moves from port 5000 to 3067 so it does not collide
     with other apps. The Umbrel login and Tor access are unchanged; the image

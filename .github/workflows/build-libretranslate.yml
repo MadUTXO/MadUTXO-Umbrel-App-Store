@@ -37,7 +37,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build and push 1.9.10
+      - name: Build and push 1.9.12
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: ./madutxo-libretranslate
@@ -45,11 +45,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/madutxo/libretranslate:1.9.10
+            ghcr.io/madutxo/libretranslate:1.9.12
           labels: |
             org.opencontainers.image.title=libretranslate
             org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
-            org.opencontainers.image.version=1.9.10
+            org.opencontainers.image.version=1.9.12
             org.opencontainers.image.base.name=libretranslate/libretranslate:v1.9.6
             org.opencontainers.image.base.digest=sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32
           cache-from: type=gha
@@ -59,7 +59,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
         with:
-          image: ghcr.io/madutxo/libretranslate:1.9.10
+          image: ghcr.io/madutxo/libretranslate:1.9.12
 
       - name: Upload SBOM
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -70,7 +70,7 @@ jobs:
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
         with:
-          image-ref: 'ghcr.io/madutxo/libretranslate:1.9.10'
+          image-ref: 'ghcr.io/madutxo/libretranslate:1.9.12'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
