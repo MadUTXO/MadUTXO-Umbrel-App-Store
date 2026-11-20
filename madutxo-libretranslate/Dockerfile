@@ -76,12 +76,12 @@ RUN /app/venv/bin/pip install --no-cache-dir "Werkzeug==3.0.6" "certifi==2026.10
  && /app/venv/bin/pip uninstall -y waitress
 
 # Small model layers from the builder stage.
-COPY --from=models /seed/pairs/de-en/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
-COPY --from=models /seed/pairs/en-es/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
-COPY --from=models /seed/pairs/en-fr/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
-COPY --from=models /seed/pairs/en-it/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
-COPY --from=models /seed/pairs/en-pt/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
-COPY --from=models /seed/pairs/es-pt/share/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/de-en/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-es/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-fr/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-it/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/en-pt/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
+COPY --from=models /seed/pairs/es-pt/argos-translate/packages/ /opt/lt-seed/share/argos-translate/packages/
 COPY --from=models /seed/minisbd-out/ /opt/lt-seed/share/argos-translate/minisbd/
 
 # Metadata-only layer: permissions and the same sanity check as before.
