@@ -122,6 +122,14 @@ services:
       - "3000"
     stop_grace_period: 60s
     mem_limit: 12g
+    # Bound the fd/thread ceiling so the engine's 80% guard engages at a known
+    # point: ~6500 fds (about 3200 Electrum connections), leaving the rest for
+    # RocksDB, the daemon connection and the REST server.
+    ulimits:
+      nofile:
+        soft: 8192
+        hard: 8192
+    pids_limit: 4096
     logging:
       driver: json-file
       options:

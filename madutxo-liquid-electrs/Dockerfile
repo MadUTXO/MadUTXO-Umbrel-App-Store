@@ -1,5 +1,5 @@
 # Stage 1: Build electrs with liquid feature (new-index, includes --daemon-rpc-conn-max-age)
-FROM rust:1.82-bookworm@sha256:d9c3c6f1264a547d84560e06ffd79ed7a799ce0bff0980b26cf10d29af888377 AS builder
+FROM rust:1.92-bookworm@sha256:e90e846de4124376164ddfbaab4b0774c7bdeef5e738866295e5a90a34a307a2 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang=1:14.0* \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /build
 
 # Pinned Blockstream electrs new-index (deterministic, not branch)
-ARG ELECTRS_SHA=785f32d9a5f6b8cab507565171ba2b9d8f6e07c0
+ARG ELECTRS_SHA=6cad780be93835b962af735171fae872f9526503
 RUN git clone --depth 1 https://github.com/Blockstream/electrs.git . \
     && git fetch --depth 1 origin ${ELECTRS_SHA} \
     && git checkout ${ELECTRS_SHA}
@@ -27,8 +27,8 @@ FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d
 LABEL org.opencontainers.image.title="electrs-liquid" \
       org.opencontainers.image.description="Electrum server for Liquid Network — Umbrel community app" \
       org.opencontainers.image.source="https://github.com/Blockstream/electrs" \
-      org.opencontainers.image.revision="785f32d9a5f6b8cab507565171ba2b9d8f6e07c0" \
-      org.opencontainers.image.version="0.6.10"
+      org.opencontainers.image.revision="6cad780be93835b962af735171fae872f9526503" \
+      org.opencontainers.image.version="0.6.11"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libsnappy1v5=1.1.9* \

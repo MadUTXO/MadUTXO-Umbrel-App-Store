@@ -2,7 +2,7 @@ manifestVersion: 1
 id: madutxo-liquid-electrs
 category: bitcoin
 name: Electrs Liquid
-version: "1.0.4"
+version: "1.0.5"
 tagline: Personal Electrum server for the Liquid Network
 description: >-
   Run your personal Electrum server for the Liquid Network and connect your
@@ -42,6 +42,16 @@ description: >-
 
 
 releaseNotes: >-
+  1.0.5:
+  - Engine update: new Electrum connections are refused before the process runs
+    out of file descriptors, so a connection burst can no longer abort an index
+    run.
+  - It now stops with a clear error when the Elements node's RPC connection
+    limit is reached, instead of looking like a stalled node.
+  - REST and Electrum package broadcasts now share the node's 25-transaction
+    package limit, so the two paths agree.
+  - No index, database or client change; the existing index is reused.
+
   1.0.4:
   - The status page no longer shows an onion address when the app's Tor
     setting is off.
