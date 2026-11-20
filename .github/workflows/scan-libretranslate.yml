@@ -52,7 +52,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL'
           ignore-unfixed: false
-          trivyignores: '.trivyignore.libretranslate'
+          trivyignores: 'madutxo-libretranslate/.trivyignore'
           exit-code: '1'
 
       - name: Generate SBOM (best effort)

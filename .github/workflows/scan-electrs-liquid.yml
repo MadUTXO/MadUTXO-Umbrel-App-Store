@@ -5,8 +5,8 @@ name: Scan electrs-liquid (scheduled)
 # complement: it re-scans the already-published, digest-pinned image on a cron
 # and FAILS on any CRITICAL finding, so drift is surfaced.
 #
-# trivyignores is used here for the same reason as torlink: the single
-# repo-wide ignore is CVE-2023-45853 (zlib/minizip, will_not_fix). electrs does
+# trivyignores is the app-scoped file (same reason as torlink).
+# It carries CVE-2023-45853 (zlib/minizip, will_not_fix). electrs does
 # not unpack zip archives, so the vulnerable minizip entry points are
 # unreachable. Do not restate a measured count here — 0.6.9 was flagged with
 # three CRITICAL perl-base CVEs (fixed in 0.6.10) while this comment still
@@ -52,7 +52,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL'
           ignore-unfixed: false
-          trivyignores: '.trivyignore'
+          trivyignores: 'madutxo-liquid-electrs/.trivyignore'
           exit-code: '1'
 
       - name: Generate SBOM (best effort)

@@ -45,7 +45,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL'
           ignore-unfixed: false
-          trivyignores: '.trivyignore'
+          trivyignores: 'madutxo-torlink/.trivyignore'
           exit-code: '1'
 
       - name: Generate SBOM (best effort)

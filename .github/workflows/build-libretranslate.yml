@@ -54,7 +54,7 @@ jobs:
             org.opencontainers.image.base.digest=sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
+          provenance: true
 
       - name: Generate SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c
