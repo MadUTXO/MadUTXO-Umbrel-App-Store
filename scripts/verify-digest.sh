@@ -70,7 +70,8 @@ verify_all_manifests() {
     "$IMAGE" \
     "$LIBRE_IMAGE" \
     "$TORLINK_IMAGE" \
-    "$ROUTSTRD_IMAGE"; do
+    "$ROUTSTRD_IMAGE" \
+    "$RUSTDESK_IMAGE"; do
     echo "Checking manifest: $vm_image"
     vm_rc=0
     verify_manifest "$vm_image" || vm_rc=$?
@@ -116,6 +117,11 @@ case "$LIBRE_IMAGE" in
 esac
 if echo "$LIBRE_IMAGE" | grep -q ":latest"; then echo "FAIL: LibreTranslate latest"; exit 1; fi
 echo "✓ LibreTranslate not latest"
+LIBRE_VERSION=$(grep -E '^version: "' "$ROOT/madutxo-libretranslate/umbrel-app.yml" | head -n1 | cut -d'"' -f2)
+LIBRE_IMAGE_TAG=$(echo "$LIBRE_IMAGE" | sed -n 's/.*libretranslate:\(.*\)@.*/\1/p')
+echo "LibreTranslate app version: $LIBRE_VERSION"
+if [ "$LIBRE_VERSION" != "$LIBRE_IMAGE_TAG" ]; then echo "FAIL: LibreTranslate app version and image tag differ"; exit 1; fi
+echo "✓ LibreTranslate version matches image tag"
 
 echo "--- torlink digest ---"
 TORLINK_COMPOSE="$ROOT/madutxo-torlink/docker-compose.yml"
@@ -162,6 +168,25 @@ echo "routstrd app version: $ROUTSTRD_VERSION"
 echo "routstrd image tag: $ROUTSTRD_IMAGE_TAG"
 if [ "$ROUTSTRD_VERSION" != "$ROUTSTRD_IMAGE_TAG" ]; then echo "FAIL: routstrd app version and image tag differ"; exit 1; fi
 echo "✓ routstrd version matches image tag"
+
+echo "--- rustdesk-server digest ---"
+RUSTDESK_COMPOSE="$ROOT/madutxo-rustdesk-server/docker-compose.yml"
+RUSTDESK_APP="$ROOT/madutxo-rustdesk-server/umbrel-app.yml"
+RUSTDESK_IMAGE=$(grep -E "image: rustdesk/rustdesk-server:" "$RUSTDESK_COMPOSE" | head -n1 | awk '{print $2}' | tr -d '"')
+echo "rustdesk-server image: $RUSTDESK_IMAGE"
+case "$RUSTDESK_IMAGE" in
+  *@sha256:* ) echo "✓ rustdesk-server image pinned" ;;
+  *) echo "FAIL: rustdesk-server image not pinned with @sha256:"; exit 1 ;;
+esac
+if echo "$RUSTDESK_IMAGE" | grep -q ":latest"; then echo "FAIL: rustdesk-server image uses latest"; exit 1; fi
+echo "✓ rustdesk-server image not latest"
+RUSTDESK_VERSION=$(grep -E '^version: "' "$RUSTDESK_APP" | head -n1 | cut -d'"' -f2)
+RUSTDESK_IMAGE_TAG=$(echo "$RUSTDESK_IMAGE" | sed -n 's/.*rustdesk-server:\(.*\)@.*/\1/p')
+echo "rustdesk-server app version: $RUSTDESK_VERSION"
+case "$RUSTDESK_VERSION" in
+  "$RUSTDESK_IMAGE_TAG"|"$RUSTDESK_IMAGE_TAG"-*) echo "✓ rustdesk-server version matches image tag" ;;
+  *) echo "FAIL: rustdesk-server app version and image tag differ"; exit 1 ;;
+esac
 
 echo "--- registry manifest checks ---"
 if command -v curl >/dev/null 2>&1; then

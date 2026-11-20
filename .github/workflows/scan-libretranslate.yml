@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: scan-libretranslate
@@ -33,20 +34,16 @@ jobs:
         with:
           persist-credentials: false
 
-      # The image-ref below is hardcoded so the scan target is auditable, but a
-      # compose bump would otherwise leave it scanning a stale digest. Fail
-      # instead, so the two are always bumped together.
-      - name: Verify scan target matches the pinned compose image
-        run: |
-          pinned=$(grep -E '^[[:space:]]+image:' madutxo-libretranslate/docker-compose.yml | awk '{print $2}' | head -n1)
-          scanned=$(grep -E "^[[:space:]]+image-ref: '" .github/workflows/scan-libretranslate.yml | sed -E "s/^[[:space:]]+image-ref: '([^']+)'.*/\1/")
-          echo "compose: $pinned"
-          echo "scan:    $scanned"
-          if [ "$pinned" != "$scanned" ]; then
-            echo "FAIL: scan target drifted from madutxo-libretranslate/docker-compose.yml"
-            exit 1
-          fi
-          echo "OK: scan target matches the pinned image"
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify scan target matches compose
+        run: bash scripts/check-scan-target.sh .github/workflows/scan-libretranslate.yml madutxo-libretranslate/docker-compose.yml
+
 
       - name: Trivy scan (fail on unregistered CRITICAL)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25

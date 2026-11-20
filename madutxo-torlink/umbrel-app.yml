@@ -205,6 +205,6 @@ path: ""
 defaultUsername: ""
 defaultPassword: ""
 submitter: MadUTXO
-submission: ""
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-torlink
 permissions:
   - STORAGE_DOWNLOADS

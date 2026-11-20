@@ -27,6 +27,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Verify scan target matches compose
+        run: bash scripts/check-scan-target.sh .github/workflows/scan-rustdesk.yml madutxo-rustdesk-server/docker-compose.yml
+
       - name: Trivy scan (fail on CRITICAL)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:

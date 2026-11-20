@@ -63,4 +63,4 @@ defaultUsername: ""
 defaultPassword: ""
 requiresHttps: true
 submitter: MadUTXO
-submission: ""
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-routstrd

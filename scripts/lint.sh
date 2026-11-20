@@ -22,6 +22,7 @@ for _app_yml in "$ROOT"/madutxo-*/umbrel-app.yml; do
   esac
 done
 echo "✓ app ids carry the store prefix"
+sh "$ROOT/scripts/lint-manifest.sh"
 echo "Lint: checking $COMPOSE..."
 # Use yq if available for accurate checks, fallback to grep
 HAS_YQ=0
