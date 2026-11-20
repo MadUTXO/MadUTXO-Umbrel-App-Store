@@ -10,6 +10,7 @@ on:
       - 'madutxo-routstrd/**'
       - 'madutxo-rustdesk-server/**'
       - 'madutxo-liquid-electrs/Dockerfile'
+      - '.github/workflows/**'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
       - '.github/workflows/lint.yml'
@@ -21,6 +22,7 @@ on:
       - 'madutxo-routstrd/**'
       - 'madutxo-rustdesk-server/**'
       - 'madutxo-liquid-electrs/Dockerfile'
+      - '.github/workflows/**'
       - 'scripts/lint.sh'
       - 'scripts/verify-digest.sh'
 
