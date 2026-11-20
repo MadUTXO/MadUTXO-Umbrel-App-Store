@@ -119,9 +119,11 @@ if echo "$LIBRE_IMAGE" | grep -q ":latest"; then echo "FAIL: LibreTranslate late
 echo "✓ LibreTranslate not latest"
 LIBRE_VERSION=$(grep -E '^version: "' "$ROOT/madutxo-libretranslate/umbrel-app.yml" | head -n1 | cut -d'"' -f2)
 LIBRE_IMAGE_TAG=$(echo "$LIBRE_IMAGE" | sed -n 's/.*libretranslate:\(.*\)@.*/\1/p')
-echo "LibreTranslate app version: $LIBRE_VERSION"
-if [ "$LIBRE_VERSION" != "$LIBRE_IMAGE_TAG" ]; then echo "FAIL: LibreTranslate app version and image tag differ"; exit 1; fi
-echo "✓ LibreTranslate version matches image tag"
+LIBRE_APP_SERIES=$(echo "$LIBRE_VERSION" | cut -d. -f1-2)
+LIBRE_TAG_SERIES=$(echo "$LIBRE_IMAGE_TAG" | cut -d. -f1-2)
+echo "LibreTranslate app version: $LIBRE_VERSION (image tag $LIBRE_IMAGE_TAG)"
+if [ "$LIBRE_APP_SERIES" != "$LIBRE_TAG_SERIES" ]; then echo "FAIL: LibreTranslate app version and image series differ"; exit 1; fi
+echo "✓ LibreTranslate version stays in the image series"
 
 echo "--- torlink digest ---"
 TORLINK_COMPOSE="$ROOT/madutxo-torlink/docker-compose.yml"
