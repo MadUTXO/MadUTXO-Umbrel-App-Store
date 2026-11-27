@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RustDesk Server - Setup</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #1a1a1a; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  p { margin: 0.5rem 0; }
+  .card { border: 1px solid #d0d0d0; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; background: #fafafa; }
+  .card.hidden { display: none; }
+  .ip-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.85rem; }
+  .lan { background: #e3f2fd; color: #0d47a1; border: 1px solid #2196f3; }
+  .mesh { background: #f3e5f5; color: #4a148c; border: 1px solid #9c27b0; }
+  code { background: #eee; padding: 0.1rem 0.3rem; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.9rem; }
+  .key-box { background: #fff; border: 1px solid #c0c0c0; padding: 1rem; border-radius: 4px; word-break: break-all; margin: 0.5rem 0; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.85rem; color: #333; }
+  .step { margin: 0.5rem 0; }
+  .note { font-size: 0.85rem; color: #555; margin-top: 1rem; border-top: 1px solid #ddd; padding-top: 0.75rem; }
+  .detecting { font-style: italic; color: #666; }
+</style>
+</head>
+<body>
+<h1>RustDesk Server</h1>
+<p>Self-hosted RustDesk ID and relay server. Connect your RustDesk clients using the details below.</p>
+
+<div id="detecting" class="card">
+  <p class="detecting">Detecting your connection type (LAN or NostrVPN mesh)…</p>
+</div>
+
+<div id="mesh-card" class="card hidden">
+  <h2><span class="ip-badge mesh">MESH_IP</span> <span id="mesh-ip"></span> — NostrVPN Mesh</h2>
+  <p>Use this when your client connects through NostrVPN.</p>
+  <div class="step"><strong>ID Server:</strong> <code id="mesh-id-server"></code>:<code>21116</code></div>
+  <div class="step"><strong>Relay Server:</strong> <code id="mesh-relay-server"></code>:<code>21117</code></div>
+  <div class="step"><strong>Public Key:</strong></div>
+  <div class="key-box" id="mesh-public-key">Loading…</div>
+</div>
+
+<div id="lan-card" class="card hidden">
+  <h2><span class="ip-badge lan">LAN_IP</span> <span id="lan-ip"></span> — Local Network</h2>
+  <p>Use this when your client is on the same local network as this Umbrel.</p>
+  <div class="step"><strong>ID Server:</strong> <code id="lan-id-server"></code>:<code>21116</code></div>
+  <div class="step"><strong>Relay Server:</strong> <code id="lan-relay-server"></code>:<code>21117</code></div>
+  <div class="step"><strong>Public Key:</strong></div>
+  <div class="key-box" id="lan-public-key">Loading…</div>
+</div>
+
+<div id="fallback-card" class="card hidden">
+  <h2>Manual Setup</h2>
+  <p>Automatic detection did not find a usable IP. Use the address you typed to reach this page.</p>
+  <div class="step"><strong>ID Server:</strong> <code id="fb-id-server"></code>:<code>21116</code></div>
+  <div class="step"><strong>Relay Server:</strong> <code id="fb-relay-server"></code>:<code>21117</code></div>
+  <div class="step"><strong>Public Key:</strong></div>
+  <div class="key-box" id="fb-public-key">Loading…</div>
+</div>
+
+<div class="note">
+  <strong>Client steps:</strong> Open RustDesk → three-dot menu → Settings → Network → Unlock Network Settings → ID/Relay Server → enter ID Server and Relay Server above → Apply. Repeat on every client device.
+</div>
+<div class="note">
+  <strong>Firewall:</strong> Open host ports 21115–21119 (TCP) and 21116 (UDP) for your LAN and/or NostrVPN mesh subnet so clients can reach this server.
+</div>
+
+<script>
+// NostrVPN mesh CIDR — change if your mesh uses a different range.
+const MESH_CIDR = "100.64.0.0/10";
+
+function ipToNumber(ip) {
+  return ip.split(".").reduce((acc, octet) => (acc << 8) + Number(octet), 0) >>> 0;
+}
+
+function ipInCidr(ip, cidr) {
+  const parts = cidr.split("/");
+  const rangeNum = ipToNumber(parts[0]);
+  const mask = ~(0xFFFFFFFF >>> (32 - Number(parts[1]))) & 0xFFFFFFFF;
+  return (ipToNumber(ip) & mask) === (rangeNum & mask);
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function setHtml(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+async function fetchPublicKey() {
+  try {
+    const res = await fetch("public_key.txt", { cache: "no-store" });
+    if (!res.ok) return "Key not available yet";
+    return await res.text();
+  } catch {
+    return "Key not available yet";
+  }
+}
+
+function gatherLocalIps() {
+  return new Promise((resolve) => {
+    const ips = new Set();
+    try {
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      pc.createDataChannel("");
+      pc.createOffer().then((o) => pc.setLocalDescription(o));
+      pc.onicecandidate = (e) => {
+        if (!e || !e.candidate) {
+          resolve(ips);
+          return;
+        }
+        const m = e.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+        if (m) ips.add(m[1]);
+      };
+      setTimeout(() => {
+        try { pc.close(); } catch {}
+        resolve(ips);
+      }, 1500);
+    } catch {
+      resolve(ips);
+    }
+  });
+}
+
+async function init() {
+  const keyRaw = await fetchPublicKey();
+  const keyHtml = escapeHtml(keyRaw.trim());
+  ["mesh-public-key", "lan-public-key", "fb-public-key"].forEach((id) => setHtml(id, keyHtml));
+
+  const ips = await gatherLocalIps();
+
+  document.getElementById("detecting").classList.add("hidden");
+
+  let meshIp = null;
+  let lanIp = null;
+
+  for (const ip of ips) {
+    if (ip.startsWith("127.") || ip.startsWith("0.") || ip.startsWith("169.254.")) continue;
+    if (ipInCidr(ip, MESH_CIDR)) {
+      if (!meshIp) meshIp = ip;
+    } else if (!lanIp) {
+      lanIp = ip;
+    }
+  }
+
+  const fill = (prefix, ip) => {
+    setText(`${prefix}-ip`, ip);
+    setHtml(`${prefix}-id-server`, `<code>${escapeHtml(ip)}</code>`);
+    setHtml(`${prefix}-relay-server`, `<code>${escapeHtml(ip)}</code>`);
+  };
+
+  if (meshIp) {
+    document.getElementById("mesh-card").classList.remove("hidden");
+    fill("mesh", meshIp);
+    if (lanIp) {
+      document.getElementById("lan-card").classList.remove("hidden");
+      fill("lan", lanIp);
+    }
+  } else if (lanIp) {
+    document.getElementById("lan-card").classList.remove("hidden");
+    fill("lan", lanIp);
+  } else {
+    document.getElementById("fallback-card").classList.remove("hidden");
+    const host = window.location.hostname;
+    setHtml("fb-id-server", `<code>${escapeHtml(host)}</code>`);
+    setHtml("fb-relay-server", `<code>${escapeHtml(host)}</code>`);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

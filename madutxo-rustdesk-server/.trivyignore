@@ -1,0 +1,11 @@
+# MadUTXO rustdesk-server Trivy ignore rules
+#
+# The upstream rustdesk/rustdesk-server image is consumed as-is and not
+# rebuilt, so base-layer CVEs that we cannot patch without forking the image
+# are accepted here. The scheduled scan (.github/workflows/scan-rustdesk.yml)
+# fails on every CRITICAL finding that is neither fixed upstream nor listed
+# below, so keep this list short and justified, and drop entries once a newer
+# upstream image supersedes them.
+#
+# One Trivy ID per line, followed by a reason and a re-evaluate condition.
+# There are no accepted exceptions yet.

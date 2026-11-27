@@ -1,0 +1,47 @@
+services:
+  app_proxy:
+    environment:
+      APP_HOST: madutxo-onionator_web_1
+      APP_PORT: 3068
+      PROXY_AUTH_ADD: "true"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+  web:
+    image: ghcr.io/madutxo/onionator:0.1.9@sha256:0a6cc16223bab0eee181a0cd040945cd8ac7992faceb6155d8289308a8318a44
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 10s
+    mem_limit: "64m"
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    expose:
+      - "3068"
+    environment:
+      - TZ=${TZ:-UTC}
+    healthcheck:
+      test: ["CMD", "/onionator", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data

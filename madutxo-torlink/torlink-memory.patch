@@ -1,0 +1,31 @@
+diff --git a/src/download/engine.ts b/src/download/engine.ts
+index 11d1b37..91f2264 100644
+--- a/src/download/engine.ts
++++ b/src/download/engine.ts
+@@ -379,7 +379,13 @@ export class TorrentEngine {
+       // not construct is an error on this torrent, never an uncaught exception.
+       const client = this.ensureClient();
+       const source = typeof reg.source === "function" ? reg.source() : reg.source;
+-      const opts = reg.announce ? { path: reg.dir, announce: reg.announce } : { path: reg.dir };
++      const opts = {
++        path: reg.dir,
++        ...(reg.announce && reg.announce.length > 0 ? { announce: reg.announce } : {}),
++        ...(process.env.TORLINK_STORE_CACHE_SLOTS !== undefined
++          ? { storeCacheSlots: Number(process.env.TORLINK_STORE_CACHE_SLOTS) }
++          : {}),
++      };
+       torrent = client.add(source, opts);
+     } catch (e) {
+       this.registry.delete(id);
+diff --git a/src/webtorrent.d.ts b/src/webtorrent.d.ts
+index e07af76..b2de776 100644
+--- a/src/webtorrent.d.ts
++++ b/src/webtorrent.d.ts
+@@ -40,6 +40,7 @@ declare module "webtorrent" {
+   interface TorrentOptions {
+     path?: string;
+     announce?: string[];
++    storeCacheSlots?: number;
+   }
+ 
+   interface WebTorrentOptions {

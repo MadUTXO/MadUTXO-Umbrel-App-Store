@@ -1,0 +1,6 @@
+# CVE-2023-45853 — zlib/minizip integer overflow (zipOpenNewFileInZip4_6).
+# Debian 12 ships the affected zlib1g and marks this will_not_fix; there is no
+# fixed package. The vulnerable minizip entry points are not used by torlink or
+# its runtime (Node's zlib exposes gzip/deflate only), so it is not reachable.
+# Re-evaluate if the base image's zlib/libminizip usage changes.
+CVE-2023-45853

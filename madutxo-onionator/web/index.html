@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Onionator</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Onionator</h1>
+    <p class="sub">Rotate the Tor onion address of an installed Umbrel app.</p>
+  </header>
+
+  {{if .Notice}}<p class="notice">{{.Notice}}</p>{{end}}
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  {{if not .TorEnabled}}<p class="error">Remote Tor access is disabled. Enable it in Umbrel Settings, then restart this app.</p>{{end}}
+
+  <section class="panel">
+    <h2>Umbrel Dashboard onion</h2>
+    {{if .DashboardOnion}}
+      <p>Use this address to open the Umbrel dashboard over Tor. It is shown only after the Umbrel login.</p>
+      <p class="onion"><a href="http://{{.DashboardOnion}}" rel="noreferrer"><code>{{.DashboardOnion}}</code></a></p>
+    {{else}}
+      <p>Not available. Enable Remote Tor Access in Umbrel and restart this app.</p>
+    {{end}}
+  </section>
+
+  <section class="panel">
+    <h2>Apps</h2>
+    <p>Select up to {{.MaxPending}} eligible apps, queue the rotation, then restart Onionator from Umbrel. While it starts, this page switches to live progress and then shows the result.</p>
+    <p>Only running apps with an onion and an app proxy are listed. App onion addresses are not shown here; open an app in Umbrel to see its current address.</p>
+    {{if .Apps}}
+      <form method="post" action="/rotate">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+        <ul class="apps">
+          {{range .Apps}}
+            <li>
+              <label class="app-select">
+                <input type="checkbox" name="app_id" value="{{.ID}}" {{if .Disabled}}disabled{{end}}>
+                <span class="app-name">{{.Name}}</span>
+              </label>
+              <span class="tags">
+                {{if .Running}}<span class="tag ok">running</span>{{else}}<span class="tag">stopped</span>{{end}}
+                {{if .HasOnion}}<span class="tag ok">onion</span>{{else}}<span class="tag">no onion</span>{{end}}
+                {{if not .HasAppProxy}}<span class="tag">no app proxy</span>{{end}}
+                {{if .Cooldown}}<span class="tag warn">cooldown until {{displayTime .CooldownUntil}}</span>{{end}}
+                {{if .LastRotatedAt}}<span class="tag">last {{displayTime .LastRotatedAt}}</span>{{end}}
+              </span>
+            </li>
+          {{end}}
+        </ul>
+        <button type="submit" {{if not .TorEnabled}}disabled{{end}}>Queue rotation</button>
+      </form>
+    {{else}}
+      <p>No eligible apps. Restart this app to refresh the list.</p>
+    {{end}}
+    {{if .RefreshedAt}}<p class="meta">Last refreshed: {{displayTime .RefreshedAt}}</p>{{end}}
+  </section>
+
+  {{if .Pending}}
+    <section class="panel">
+      <h2>Pending</h2>
+      <p>Restart Onionator from Umbrel to apply these requests. Queued work runs during startup and is shown on the progress page.</p>
+      <ul class="plain">
+        {{range .Pending}}
+          <li>
+            <span>{{.AppName}}</span>
+            <span class="meta">queued {{displayTime .RequestedAt}}</span>
+            <form method="post" action="/cancel">
+              <input type="hidden" name="csrf" value="{{$.CSRF}}">
+              <input type="hidden" name="request_id" value="{{.RequestID}}">
+              <button type="submit" class="small">Cancel</button>
+            </form>
+          </li>
+        {{end}}
+      </ul>
+    </section>
+  {{end}}
+
+  {{if .Results}}
+    <section class="panel">
+      <h2>Recent results</h2>
+      <ul class="plain">
+        {{range .Results}}
+          <li>
+            <span>{{.AppName}}</span>
+            <span class="tag">{{.CodeText}}</span>
+            <span class="meta">{{displayTime .FinishedAt}}</span>
+          </li>
+        {{end}}
+      </ul>
+    </section>
+  {{end}}
+
+  <section class="panel note">
+    <h2>Before you rotate</h2>
+    <ul>
+      <li>Queue first, then restart Onionator from Umbrel. Rotation runs during startup; do not restart the target app.</li>
+      <li>Only the selected app's Tor sidecar restarts. The app stays running.</li>
+      <li>The old address may stay reachable until Tor publishes the new descriptor. Share the new address only after it works.</li>
+      <li>Links, bookmarks, paired clients and integrations that use the old address will stop working. Some apps may require a new login.</li>
+      <li>This tool does not rotate Umbrel's dashboard or authentication onions, and does not show app onion addresses.</li>
+      <li>Keep the Umbrel login enabled. This page uses the standard Umbrel app proxy login.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

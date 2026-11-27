@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title" shape-rendering="geometricPrecision">
+  <title id="title">Onionator circular rotation arrows</title>
+  <rect width="200" height="200" rx="40" fill="#8C28AA"/>
+  <path d="M57.1 136A56 56 0 0 1 109.7 44.8" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  <path d="M125.5 47.6 97.1 58.9 102.7 27.3Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M142.9 64A56 56 0 0 1 90.3 155.2" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  <path d="M74.5 152.4 103 141.1 97.4 172.7Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+</svg>

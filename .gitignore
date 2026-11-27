@@ -1,0 +1,6 @@
+# Runtime data — keep dir markers and the rustdesk web assets.
+*/data/**
+!*/data/**/
+!*/data/.gitkeep
+!*/data/**/.gitkeep
+!*/data/www/**

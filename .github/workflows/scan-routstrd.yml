@@ -1,0 +1,67 @@
+name: Scan routstrd (scheduled)
+
+# The build workflow gates on fixable CRITICAL/HIGH findings (ignore-unfixed),
+# so a transient tool download cannot redden a release but a real fixable CVE
+# does. This scheduled job is the strict complement: it re-scans the
+# already-published, digest-pinned image on a cron and FAILS on any CRITICAL
+# finding, so drift is surfaced.
+#
+# Trivy ignores are scoped explicitly to madutxo-routstrd/.trivyignore, so the
+# repo-root .trivyignore (a torlink-runtime exception) does not apply here. The
+# The gate is strict: anything new fails it.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: scan-routstrd
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Verify scan target matches compose
+        run: bash scripts/check-scan-target.sh .github/workflows/scan-routstrd.yml madutxo-routstrd/docker-compose.yml
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        with:
+          image-ref: 'ghcr.io/madutxo/routstrd:0.5.9@sha256:7206687ccc3aa961086345bde068c7f18800488fa7020927bd9466ae58554984'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: false
+          trivyignores: 'madutxo-routstrd/.trivyignore'
+          exit-code: '1'
+
+      - name: Generate SBOM (best effort)
+        uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
+        continue-on-error: true
+        with:
+          image: 'ghcr.io/madutxo/routstrd:0.5.9@sha256:7206687ccc3aa961086345bde068c7f18800488fa7020927bd9466ae58554984'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: routstrd-sbom-scheduled
+          path: sbom*
+          if-no-files-found: ignore

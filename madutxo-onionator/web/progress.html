@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{if .Active}}<meta http-equiv="refresh" content="2">{{end}}
+  <title>Onionator progress</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Onionator</h1>
+    <p class="sub">Rotation progress</p>
+  </header>
+
+  <section class="panel progress">
+    {{if .Active}}
+      <p class="eyebrow">In progress</p>
+      <h2>{{if .AppName}}{{.AppName}}{{else}}Queued rotation{{end}}</h2>
+      <p class="phase">{{.PhaseText}}</p>
+      <div class="progress-track" aria-hidden="true"><span></span></div>
+      <ol class="steps">
+        <li class="{{if eq .Phase "checking"}}current{{end}}">Check request</li>
+        <li class="{{if eq .Phase "stopping"}}current{{end}}">Stop Tor sidecar</li>
+        <li class="{{if eq .Phase "moving"}}current{{end}}">Move onion data</li>
+        <li class="{{if eq .Phase "starting"}}current{{end}}">Start Tor sidecar</li>
+        <li class="{{if eq .Phase "waiting"}}current{{end}}">Wait for new address</li>
+      </ol>
+      {{if .Message}}<p class="meta">{{.Message}}</p>{{end}}
+      <p class="meta">This page refreshes every 2 seconds. You can close it; the rotation continues while Umbrel starts this app.</p>
+      {{if .UpdatedAt}}<p class="meta">Updated {{displayTime .UpdatedAt}}</p>{{end}}
+    {{else}}
+      <p class="eyebrow">{{if .Success}}Complete{{else}}Finished{{end}}</p>
+      <h2>{{if .AppName}}{{.AppName}}{{else}}Rotation{{end}}</h2>
+      <p class="result {{if .Success}}ok{{else}}bad{{end}}">{{.CodeText}}</p>
+      {{if .Message}}<p class="meta">{{.Message}}</p>{{end}}
+      {{if .StartedAt}}<p class="meta">Started {{displayTime .StartedAt}}</p>{{end}}
+      {{if .UpdatedAt}}<p class="meta">Finished {{displayTime .UpdatedAt}}</p>{{end}}
+      <p><a href="/">Back to Onionator</a></p>
+    {{end}}
+  </section>
+
+  <section class="panel note">
+    <h2>What happens now</h2>
+    <ul>
+      <li>Only the selected app's Tor sidecar restarts. The app itself stays running.</li>
+      <li>Umbrel may show this app as Starting until the rotation finishes.</li>
+      <li>This page never shows app onion addresses.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

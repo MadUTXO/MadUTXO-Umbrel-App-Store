@@ -1,0 +1,643 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+POST_START=false
+case "${1:-}" in
+  "") ;;
+  --post-start) POST_START=true ;;
+  *) printf 'onionator: unknown argument: %s\n' "$1" >&2; exit 0 ;;
+esac
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
+
+APP_ID="madutxo-onionator"
+UMBREL_ROOT="${UMBREL_ROOT:-}"
+APP_DATA_ROOT="${APP_DATA_ROOT:-}"
+TOR_DATA_DIR="${UMBREL_ROOT}/tor/data"
+BACKUP_ROOT="${UMBREL_ROOT}/tor/.rotate-backup"
+STATE_ROOT="${UMBREL_ROOT}/tor/.rotate-state"
+LOCK_FILE="${STATE_ROOT}/lock"
+MAX_REQUESTS=5
+MAX_PENDING_BYTES=4096
+COOLDOWN_SECONDS=600
+PENDING_MAX_AGE_SECONDS=86400
+
+PENDING_DIR="${APP_DATA_ROOT}/pending"
+RESULTS_DIR="${APP_DATA_ROOT}/results"
+DASHBOARD_FILE="${APP_DATA_ROOT}/dashboard-onion"
+META_FILE="${APP_DATA_ROOT}/meta.json"
+PROGRESS_FILE="${APP_DATA_ROOT}/progress.json"
+
+PROGRESS_STARTED_AT=""
+DOCKER_OK=false
+TOR_ENABLED=false
+
+log() {
+  printf 'onionator: %s\n' "$*"
+}
+
+fail() {
+  printf 'onionator: %s\n' "$*" >&2
+}
+
+app_display_name() {
+  local app="$1" manifest name
+  manifest="${UMBREL_ROOT}/app-data/${app}/umbrel-app.yml"
+  if [ -f "$manifest" ] && command -v yq >/dev/null 2>&1; then
+    name="$(yq e '.name // .id // ""' "$manifest" 2>/dev/null || true)"
+  fi
+  if [ -n "${name:-}" ]; then
+    printf '%s' "$name"
+  else
+    printf '%s' "$app"
+  fi
+}
+
+write_progress() {
+  local phase="$1" app="${2:-}" code="${3:-}" message="${4:-}"
+  local active=true name="" tmp now
+  [ "$POST_START" = true ] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  require_real_dir "$APP_DATA_ROOT" "app data root" || return 0
+  if [ "$phase" = final ]; then
+    active=false
+  fi
+  if [ -n "$app" ] && is_valid_app_id "$app"; then
+    name="$(app_display_name "$app")"
+  else
+    app=""
+  fi
+  now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  [ -n "$PROGRESS_STARTED_AT" ] || PROGRESS_STARTED_AT="$now"
+  tmp="$(mktemp "${APP_DATA_ROOT}/.progress.XXXXXX")" || return 0
+  if ! jq -cn \
+    --argjson active "$active" \
+    --arg phase "$phase" \
+    --arg app_id "$app" \
+    --arg app_name "$name" \
+    --arg code "$code" \
+    --arg started_at "$PROGRESS_STARTED_AT" \
+    --arg updated_at "$now" \
+    --arg message "$message" \
+    '{active:$active,phase:$phase,app_id:$app_id,app_name:$app_name,code:$code,started_at:$started_at,updated_at:$updated_at,message:$message}' \
+    > "$tmp"; then
+    rm -f "$tmp"
+    return 0
+  fi
+  chmod 0644 "$tmp" 2>/dev/null || true
+  chown 0:0 "$tmp" 2>/dev/null || true
+  mv -f "$tmp" "$PROGRESS_FILE" 2>/dev/null || {
+    rm -f "$tmp"
+    fail "could not publish progress"
+  }
+}
+
+is_valid_app_id() {
+  local app="$1"
+  [[ "$app" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$ ]] || return 1
+  case "$app" in
+    web|auth|app-*|"$APP_ID") return 1 ;;
+  esac
+  return 0
+}
+
+is_valid_request_id() {
+  [[ "$1" =~ ^[a-f0-9]{32}$ ]]
+}
+
+valid_onion() {
+  [[ "$1" =~ ^[a-z2-7]{56}\.onion$ ]]
+}
+
+require_real_dir() {
+  local path="$1" label="${2:-$1}"
+  if [ -L "$path" ] || [ ! -d "$path" ]; then
+    fail "$label is not a real directory; refusing to continue"
+    return 1
+  fi
+}
+
+ensure_real_dir() {
+  local path="$1" mode="$2" label="${3:-$1}"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then
+    fail "$label is not a real directory; refusing to continue"
+    return 1
+  fi
+  if [ ! -e "$path" ]; then
+    mkdir "$path" || return 1
+  fi
+  [ -d "$path" ] && [ ! -L "$path" ] || return 1
+  chmod "$mode" "$path" || return 1
+}
+
+read_hostname() {
+  local dir="$1" file="$1/hostname" value
+  [ -f "$file" ] && [ ! -L "$file" ] || return 1
+  value="$(head -c 256 < "$file" 2>/dev/null | tr -d '[:space:]' || true)"
+  valid_onion "$value" || return 1
+  printf '%s\n' "$value"
+}
+
+target_onion_dir() {
+  local app="$1"
+  local dir="${TOR_DATA_DIR}/app-${app}" owner
+  [ -d "$dir" ] && [ ! -L "$dir" ] || return 1
+  owner="$(stat -c %u "$dir" 2>/dev/null || true)"
+  [ "$owner" = "1000" ] || return 1
+  read_hostname "$dir" >/dev/null || return 1
+}
+
+target_has_proxy() {
+  local app="$1"
+  local compose="${UMBREL_ROOT}/app-data/${app}/docker-compose.yml" value
+  [ -f "$compose" ] || return 1
+  value="$(yq e '.services | has("app_proxy")' "$compose" 2>/dev/null || true)"
+  [ "$value" = "true" ]
+}
+
+target_running() {
+  local app="$1" services
+  [ "$DOCKER_OK" = true ] || return 1
+  services="$(timeout 5 docker ps --filter "label=com.docker.compose.project=${app}" --format '{{.Label "com.docker.compose.service"}}' 2>/dev/null || true)"
+  printf '%s\n' "$services" | grep -v '^tor_server$' | grep -q .
+}
+
+target_tor_container_any() {
+  local app="$1" ids labels envs
+  [ "$DOCKER_OK" = true ] || return 1
+  ids="$(timeout 5 docker ps -a -q --filter "label=com.docker.compose.project=${app}" --filter "label=com.docker.compose.service=tor_server" 2>/dev/null || true)"
+  [ -n "$ids" ] || return 1
+  [ "$(printf '%s\n' "$ids" | wc -l)" -eq 1 ] || return 1
+  labels="$(timeout 5 docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}} {{index .Config.Labels "com.docker.compose.service"}}' "$ids" 2>/dev/null || true)"
+  [ "$labels" = "${app} tor_server" ] || return 1
+  envs="$(timeout 5 docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$ids" 2>/dev/null || true)"
+  printf '%s\n' "$envs" | grep -qx "HS_DIR=/data/app-${app}" || return 1
+  printf '%s\n' "$ids"
+}
+
+target_tor_container() {
+  local app="$1" ids labels envs
+  [ "$DOCKER_OK" = true ] || return 1
+  ids="$(timeout 5 docker ps -q --filter "label=com.docker.compose.project=${app}" --filter "label=com.docker.compose.service=tor_server" 2>/dev/null || true)"
+  [ -n "$ids" ] || return 1
+  [ "$(printf '%s\n' "$ids" | wc -l)" -eq 1 ] || return 1
+  labels="$(timeout 5 docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}} {{index .Config.Labels "com.docker.compose.service"}}' "$ids" 2>/dev/null || true)"
+  [ "$labels" = "${app} tor_server" ] || return 1
+  envs="$(timeout 5 docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$ids" 2>/dev/null || true)"
+  printf '%s\n' "$envs" | grep -qx "HS_DIR=/data/app-${app}" || return 1
+  printf '%s\n' "$ids"
+}
+
+stop_tor_container() {
+  local cid="$1" running
+  if timeout 25 docker stop -t 15 "$cid" >/dev/null 2>&1; then
+    return 0
+  fi
+  running="$(timeout 5 docker inspect -f '{{.State.Running}}' "$cid" 2>/dev/null || true)"
+  [ "$running" = false ] && return 0
+  timeout 10 docker kill "$cid" >/dev/null 2>&1 || true
+  running="$(timeout 5 docker inspect -f '{{.State.Running}}' "$cid" 2>/dev/null || true)"
+  [ "$running" = false ]
+}
+
+cooldown_ok() {
+  local app="$1"
+  local file="${STATE_ROOT}/last/${app}" last now
+  [ -f "$file" ] || return 0
+  last="$(cat "$file" 2>/dev/null || true)"
+  case "$last" in
+    ''|*[!0-9]*) return 0 ;;
+  esac
+  now="$(date +%s)"
+  [ $((now - last)) -ge "$COOLDOWN_SECONDS" ]
+}
+
+record_attempt() {
+  local app="$1"
+  local file="${STATE_ROOT}/last/${app}"
+  require_real_dir "$STATE_ROOT/last" "state last" || return 0
+  printf '%s\n' "$(date +%s)" > "$file" 2>/dev/null || true
+  chmod 0600 "$file" 2>/dev/null || true
+}
+
+write_result() {
+  local request_id="$1" app="$2" code="$3" started_at="$4"
+  local finished_at tmp
+  if ! command -v jq >/dev/null 2>&1; then
+    fail "jq unavailable; result not recorded"
+    return 0
+  fi
+  require_real_dir "$RESULTS_DIR" "results directory" || return 0
+  finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  tmp="$(mktemp "${RESULTS_DIR}/.result.XXXXXX")"
+  if ! jq -cn \
+    --arg request_id "$request_id" \
+    --arg app_id "$app" \
+    --arg code "$code" \
+    --arg started_at "$started_at" \
+    --arg finished_at "$finished_at" \
+    '{request_id:$request_id,app_id:$app_id,code:$code,started_at:$started_at,finished_at:$finished_at}' \
+    > "$tmp"; then
+    rm -f "$tmp"
+    fail "could not write result"
+    return 0
+  fi
+  chmod 0644 "$tmp" 2>/dev/null || true
+  chown 0:0 "$tmp" 2>/dev/null || true
+  mv -f "$tmp" "${RESULTS_DIR}/${request_id}.json" 2>/dev/null || {
+    rm -f "$tmp"
+    fail "could not publish result"
+  }
+  write_progress "final" "$app" "$code" ""
+  return 0
+}
+
+write_dashboard_onion() {
+  local src="${TOR_DATA_DIR}/web/hostname" value="" tmp
+  require_real_dir "$APP_DATA_ROOT" "app data root" || return 0
+  if [ "$TOR_ENABLED" = true ] && [ -f "$src" ] && [ ! -L "$src" ]; then
+    value="$(head -c 256 < "$src" 2>/dev/null | tr -d '[:space:]' || true)"
+  fi
+  if valid_onion "$value"; then
+    tmp="$(mktemp "${APP_DATA_ROOT}/.dashboard.XXXXXX")"
+    printf '%s\n' "$value" > "$tmp"
+    chmod 0600 "$tmp"
+    chown 1000:1000 "$tmp" 2>/dev/null || true
+    mv -f "$tmp" "$DASHBOARD_FILE"
+  else
+    rm -f "$DASHBOARD_FILE"
+  fi
+}
+
+write_meta() {
+  local apps_tmp obj apps_json tmp now app manifest name compose running has_onion has_proxy last_file last
+  local last_at cooldown_until until
+  if ! command -v jq >/dev/null 2>&1 || ! command -v yq >/dev/null 2>&1; then
+    fail "jq or yq unavailable; app list not refreshed"
+    return 1
+  fi
+  require_real_dir "$APP_DATA_ROOT" "app data root" || return 1
+  require_real_dir "$STATE_ROOT" "state root" || return 1
+
+  apps_tmp="$(mktemp "${STATE_ROOT}/apps.XXXXXX")"
+  now="$(date +%s)"
+  while IFS= read -r app; do
+    [ -n "$app" ] || continue
+    is_valid_app_id "$app" || continue
+    manifest="${UMBREL_ROOT}/app-data/${app}/umbrel-app.yml"
+    [ -f "$manifest" ] || continue
+
+    name="$(yq e '.name // .id // ""' "$manifest" 2>/dev/null || true)"
+    [ -n "$name" ] || name="$app"
+
+    compose="${UMBREL_ROOT}/app-data/${app}/docker-compose.yml"
+    if [ -f "$compose" ] && [ "$(yq e '.services | has("app_proxy")' "$compose" 2>/dev/null || true)" = "true" ]; then
+      has_proxy=true
+    else
+      has_proxy=false
+    fi
+
+    if target_running "$app"; then
+      running=true
+    else
+      running=false
+    fi
+
+    if [ "$TOR_ENABLED" = true ] && target_onion_dir "$app"; then
+      has_onion=true
+    else
+      has_onion=false
+    fi
+
+    last_file="${STATE_ROOT}/last/${app}"
+    last_at=""
+    cooldown_until=""
+    if [ -f "$last_file" ]; then
+      last="$(cat "$last_file" 2>/dev/null || true)"
+      case "$last" in
+        ''|*[!0-9]*) ;;
+        *)
+          last_at="$(date -u -d "@$last" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || true)"
+          until=$((last + COOLDOWN_SECONDS))
+          if [ "$now" -lt "$until" ]; then
+            cooldown_until="$(date -u -d "@$until" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || true)"
+          fi
+          ;;
+      esac
+    fi
+
+    obj="$(jq -cn \
+      --arg id "$app" \
+      --arg name "$name" \
+      --argjson running "$running" \
+      --argjson has_onion "$has_onion" \
+      --argjson has_app_proxy "$has_proxy" \
+      --arg last_rotated_at "$last_at" \
+      --arg cooldown_until "$cooldown_until" \
+      '{id:$id,name:$name,running:$running,has_onion:$has_onion,has_app_proxy:$has_app_proxy,last_rotated_at:$last_rotated_at,cooldown_until:$cooldown_until}')"
+    printf '%s\n' "$obj" >> "$apps_tmp"
+  done < <(yq e '.apps[]' "${UMBREL_ROOT}/umbrel.yaml" 2>/dev/null || true)
+
+  apps_json="$(jq -s '.' "$apps_tmp")"
+  rm -f "$apps_tmp"
+
+  tmp="$(mktemp "${APP_DATA_ROOT}/.meta.XXXXXX")"
+  if ! jq -n \
+    --argjson tor_enabled "$TOR_ENABLED" \
+    --arg refreshed_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --argjson apps "$apps_json" \
+    '{tor_enabled:$tor_enabled,refreshed_at:$refreshed_at,apps:$apps}' > "$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  chmod 0644 "$tmp"
+  chown 1000:1000 "$tmp" 2>/dev/null || true
+  mv -f "$tmp" "$META_FILE"
+}
+
+recover_backups() {
+  local backup app live live_host backup_host cid
+  [ "$DOCKER_OK" = true ] || return 0
+  for backup in "$BACKUP_ROOT"/app-*; do
+    [ -d "$backup" ] || continue
+    app="${backup##*/app-}"
+    is_valid_app_id "$app" || continue
+    live="${TOR_DATA_DIR}/app-${app}"
+
+    if [ ! -e "$live" ]; then
+      if mv "$backup" "$live"; then
+        cid="$(target_tor_container_any "$app" 2>/dev/null || true)"
+        if [ -n "$cid" ]; then
+          timeout 20 docker start "$cid" >/dev/null 2>&1 || true
+        fi
+        log "recovered interrupted rotation for app=${app}"
+      fi
+      continue
+    fi
+
+    live_host="$(read_hostname "$live" 2>/dev/null || true)"
+    backup_host="$(read_hostname "$backup" 2>/dev/null || true)"
+    if [ -n "$live_host" ] && [ "$live_host" != "$backup_host" ]; then
+      rm -rf "$backup"
+      log "finalized completed rotation for app=${app}"
+    elif [ -z "$live_host" ]; then
+      cid="$(target_tor_container_any "$app" 2>/dev/null || true)"
+      if [ -n "$cid" ]; then
+        stop_tor_container "$cid" || true
+      fi
+      if ! rm -rf "$live"; then
+        log "could not clear invalid onion for app=${app}"
+        continue
+      fi
+      if mv "$backup" "$live"; then
+        if [ -n "$cid" ]; then
+          timeout 20 docker start "$cid" >/dev/null 2>&1 || true
+        fi
+        log "restored old onion for app=${app}"
+      fi
+    else
+      rm -rf "$backup"
+      log "cleaned stale backup for app=${app}"
+    fi
+  done
+}
+
+rotate_one() {
+  local request_id="$1" app="$2" started_at cid live backup old new
+  started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  write_progress "checking" "$app" "" "Checking the selected app"
+
+  if [ "$TOR_ENABLED" != true ]; then
+    write_result "$request_id" "$app" "tor_disabled" "$started_at"
+    return 0
+  fi
+  if [ "$DOCKER_OK" != true ]; then
+    write_result "$request_id" "$app" "docker_unavailable" "$started_at"
+    return 0
+  fi
+  if [ "$app" = "$APP_ID" ]; then
+    write_result "$request_id" "$app" "self_not_allowed" "$started_at"
+    return 0
+  fi
+  if ! is_valid_app_id "$app" || [ ! -f "${UMBREL_ROOT}/app-data/${app}/umbrel-app.yml" ]; then
+    write_result "$request_id" "$app" "unknown_app" "$started_at"
+    return 0
+  fi
+  if ! target_has_proxy "$app"; then
+    write_result "$request_id" "$app" "no_app_proxy" "$started_at"
+    return 0
+  fi
+  if ! target_running "$app"; then
+    write_result "$request_id" "$app" "not_running" "$started_at"
+    return 0
+  fi
+  if ! target_onion_dir "$app"; then
+    write_result "$request_id" "$app" "no_onion" "$started_at"
+    return 0
+  fi
+  if ! cooldown_ok "$app"; then
+    write_result "$request_id" "$app" "cooldown" "$started_at"
+    return 0
+  fi
+
+  cid="$(target_tor_container "$app" 2>/dev/null || true)"
+  if [ -z "$cid" ]; then
+    write_result "$request_id" "$app" "no_tor_server" "$started_at"
+    return 0
+  fi
+
+  live="${TOR_DATA_DIR}/app-${app}"
+  backup="${BACKUP_ROOT}/app-${app}"
+  if [ -e "$backup" ]; then
+    write_result "$request_id" "$app" "busy" "$started_at"
+    return 0
+  fi
+  old="$(read_hostname "$live" 2>/dev/null || true)"
+  if [ -z "$old" ]; then
+    write_result "$request_id" "$app" "no_onion" "$started_at"
+    return 0
+  fi
+
+  record_attempt "$app"
+
+  write_progress "stopping" "$app" "" "Stopping the Tor sidecar"
+  if ! stop_tor_container "$cid"; then
+    write_result "$request_id" "$app" "failed_stop" "$started_at"
+    return 0
+  fi
+  write_progress "moving" "$app" "" "Moving the onion data"
+  if ! mv "$live" "$backup"; then
+    timeout 20 docker start "$cid" >/dev/null 2>&1 || true
+    write_result "$request_id" "$app" "failed_move" "$started_at"
+    return 0
+  fi
+  write_progress "starting" "$app" "" "Starting the Tor sidecar"
+  if ! timeout 20 docker start "$cid" >/dev/null 2>&1; then
+    stop_tor_container "$cid" || true
+    if ! rm -rf "$live"; then
+      write_result "$request_id" "$app" "rollback_failed" "$started_at"
+      return 0
+    fi
+    if mv "$backup" "$live" && timeout 20 docker start "$cid" >/dev/null 2>&1; then
+      write_result "$request_id" "$app" "rollback_ok" "$started_at"
+    else
+      write_result "$request_id" "$app" "rollback_failed" "$started_at"
+    fi
+    return 0
+  fi
+
+  write_progress "waiting" "$app" "" "Waiting for the new onion address"
+  new=""
+  for _ in $(seq 1 60); do
+    new="$(read_hostname "$live" 2>/dev/null || true)"
+    if [ -n "$new" ] && [ "$new" != "$old" ]; then
+      break
+    fi
+    sleep 1
+  done
+
+  if [ -n "$new" ] && [ "$new" != "$old" ]; then
+    rm -rf "$backup"
+    write_result "$request_id" "$app" "success" "$started_at"
+    return 0
+  fi
+
+  stop_tor_container "$cid" || true
+  if ! rm -rf "$live"; then
+    write_result "$request_id" "$app" "rollback_failed" "$started_at"
+    return 0
+  fi
+  if mv "$backup" "$live" && timeout 20 docker start "$cid" >/dev/null 2>&1; then
+    write_result "$request_id" "$app" "rollback_ok" "$started_at"
+  else
+    write_result "$request_id" "$app" "rollback_failed" "$started_at"
+  fi
+}
+
+process_pending() {
+  local file request_id app requested_at requested_epoch now age count size
+  require_real_dir "$PENDING_DIR" "pending directory" || return 0
+  exec 8<"$PENDING_DIR" || return 0
+  if ! flock -n 8; then
+    log "pending queue is busy; leaving requests for the next start"
+    exec 8<&-
+    return 0
+  fi
+
+  count=0
+  now="$(date +%s)"
+  while IFS= read -r -d '' file; do
+    [ "$count" -lt "$MAX_REQUESTS" ] || break
+    if [ ! -f "$file" ] || [ -L "$file" ]; then
+      continue
+    fi
+    size="$(stat -c %s "$file" 2>/dev/null || printf '0')"
+    if [ "$size" -le 0 ] || [ "$size" -gt "$MAX_PENDING_BYTES" ]; then
+      rm -f "$file"
+      continue
+    fi
+    request_id="$(basename "$file" .json)"
+    if ! is_valid_request_id "$request_id"; then
+      rm -f "$file"
+      continue
+    fi
+
+    write_progress "checking" "" "" "Checking queued requests"
+    app="$(jq -r '.app_id // empty' "$file" 2>/dev/null || true)"
+    requested_at="$(jq -r '.requested_at // empty' "$file" 2>/dev/null || true)"
+    [ ! -L "$file" ] || continue
+    if ! is_valid_app_id "$app"; then
+      write_result "$request_id" "$app" "invalid_request" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      rm -f "$file"
+      continue
+    fi
+
+    requested_epoch="$(date -u -d "$requested_at" +%s 2>/dev/null || true)"
+    if [ -n "$requested_epoch" ] && [ "$requested_epoch" -gt 0 ]; then
+      age=$((now - requested_epoch))
+      if [ "$age" -gt "$PENDING_MAX_AGE_SECONDS" ]; then
+        write_result "$request_id" "$app" "expired" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        rm -f "$file"
+        continue
+      fi
+    fi
+
+    rotate_one "$request_id" "$app"
+    rm -f "$file"
+    count=$((count + 1))
+  done < <(find "$PENDING_DIR" -maxdepth 1 -type f -name '*.json' -print0 2>/dev/null)
+
+  flock -u 8
+  exec 8<&-
+}
+
+prune_results() {
+  require_real_dir "$RESULTS_DIR" "results directory" || return 0
+  # shellcheck disable=SC2012
+  ls -t "$RESULTS_DIR"/*.json 2>/dev/null \
+    | tail -n +51 \
+    | while IFS= read -r file; do
+        rm -f "$file"
+      done || true
+}
+
+main() {
+  if [ -z "$UMBREL_ROOT" ] || [ -z "$APP_DATA_ROOT" ]; then
+    fail "UMBREL_ROOT and APP_DATA_ROOT are required"
+    exit 0
+  fi
+
+  [ "${REMOTE_TOR_ACCESS:-false}" = "true" ] && TOR_ENABLED=true
+
+  require_real_dir "$APP_DATA_ROOT" "app data root" || exit 0
+  require_real_dir "$UMBREL_ROOT/tor" "tor data root" || exit 0
+  ensure_real_dir "$PENDING_DIR" 0700 "pending directory" || exit 0
+  ensure_real_dir "$RESULTS_DIR" 0755 "results directory" || exit 0
+  ensure_real_dir "$STATE_ROOT" 0700 "state root" || exit 0
+  ensure_real_dir "$STATE_ROOT/last" 0700 "state last" || exit 0
+  ensure_real_dir "$BACKUP_ROOT" 0700 "backup root" || exit 0
+  chmod 0755 "$APP_DATA_ROOT" 2>/dev/null || true
+  chown 1000:1000 "$APP_DATA_ROOT" "$PENDING_DIR" 2>/dev/null || true
+  chown 0:0 "$RESULTS_DIR" "$STATE_ROOT" "$STATE_ROOT/last" "$BACKUP_ROOT" 2>/dev/null || true
+
+  if ! command -v flock >/dev/null 2>&1; then
+    fail "flock unavailable; skipping rotation"
+    exit 0
+  fi
+  exec 9>"$LOCK_FILE"
+  if ! flock -n 9; then
+    log "another rotation is already running"
+    exit 0
+  fi
+  trap 'flock -u 9 2>/dev/null || true' EXIT
+  rm -f "$PROGRESS_FILE" 2>/dev/null || true
+  PROGRESS_STARTED_AT=""
+
+  if command -v docker >/dev/null 2>&1 && timeout 5 docker ps >/dev/null 2>&1; then
+    DOCKER_OK=true
+  fi
+
+  if ! command -v jq >/dev/null 2>&1 || ! command -v yq >/dev/null 2>&1; then
+    fail "jq and yq are required; pending requests left in place"
+    write_dashboard_onion
+    exit 0
+  fi
+
+  if [ "$TOR_ENABLED" = true ]; then
+    recover_backups
+  fi
+  if [ "$POST_START" = true ]; then
+    process_pending
+  fi
+  write_dashboard_onion
+  write_meta || fail "app list not refreshed"
+  prune_results
+  if [ "$POST_START" = true ]; then
+    log "post-start complete"
+  else
+    log "startup complete"
+  fi
+}
+
+main "$@"

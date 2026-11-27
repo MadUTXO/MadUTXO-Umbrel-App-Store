@@ -1,0 +1,2 @@
+# Scoped to onionator. The final image is scratch with one static Go binary;
+# add only measured, unreachable or unfixed findings here with a reason.

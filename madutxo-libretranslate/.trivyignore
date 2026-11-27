@@ -1,0 +1,19 @@
+# Trivy suppression register for madutxo-libretranslate.
+#
+# These two CRITICALs are PRESENT in the image but NOT REACHABLE; the strict
+# scan still reports them unless suppressed, so they stay here as
+# presence-only suppressions (not accepted debt). See
+# reports/madutxo-libretranslate-audit-2026-11-08.md LT-09 and
+# reports/madutxo-store-audit-2026-11-11-rerun.md. The scan is strict on
+# everything not listed here, so a new CVE fails it.
+#
+# CVE-2025-7458 (libsqlite3 3.40.1): Debian bookworm marks it no-dsa (Minor)
+# and ships no fix; fixed upstream in 3.41.2 (trixie has 3.46.1). The app only
+# opens the API-keys DB when LT_API_KEYS is set (not set) and executes fixed,
+# parameterized statements; there is no attacker-controlled SQL path.
+CVE-2025-7458
+
+# CVE-2023-45853 (zlib1g 1.2.13): Debian bookworm marks zlib <ignored> because
+# contrib/minizip is not built; the zlib1g binary does not contain the
+# vulnerable code. Fixed in trixie (zlib 1.3.1).
+CVE-2023-45853

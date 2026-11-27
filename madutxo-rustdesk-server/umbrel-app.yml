@@ -1,0 +1,43 @@
+manifestVersion: 1
+id: madutxo-rustdesk-server
+storage:
+  dataRoot: data
+category: networking
+name: RustDesk Server
+version: "1.1.16-5"
+tagline: Self-hosted RustDesk ID and relay server
+description: >-
+  RustDesk is an open-source, self-hosted remote desktop server. This package
+  runs the hbbs ID/signaling server and hbbr relay server on your Umbrel, so
+  your RustDesk clients can connect without relying on public relays.
+
+  Open the app's web page from the Umbrel dashboard. It shows the correct IP
+  and ports for your clients (ID Server and Relay Server) plus the public key
+  to enter in RustDesk Settings → Network → ID/Relay Server.
+
+  Supports both LAN and NostrVPN mesh connections: the web page detects how
+  you reached it and shows LAN_IP or MESH_IP accordingly. Clients can use
+  either address to reach this server.
+
+  Ports used: 21115 (ID server, TCP), 21116 (device registration + NAT hole
+  punching, TCP+UDP), 21117/21119 (relay, TCP). Make sure the host firewall
+  allows these from your LAN and/or NostrVPN subnet.
+developer: RustDesk Team
+website: https://rustdesk.com
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-rustdesk-server
+repo: https://github.com/rustdesk/rustdesk-server
+support: https://github.com/rustdesk/rustdesk/issues
+gallery: []
+releaseNotes: >-
+  1.1.16-5:
+  - Fix both health checks. The upstream image has no shell, so the old checks
+    could never run and the app always showed unhealthy. They now run the
+    server binary directly. No image change.
+path: ""
+port: 21080
+defaultUsername: ""
+defaultPassword: ""
+dependencies: []
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-rustdesk-server/icon.png
+requiresHttps: false

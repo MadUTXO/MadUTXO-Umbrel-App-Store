@@ -1,0 +1,49 @@
+manifestVersion: 1
+id: madutxo-onionator
+storage:
+  dataRoot: data
+category: networking
+name: Onionator
+version: "0.1.9"
+tagline: Rotate the Tor onion address of an installed Umbrel app
+description: >-
+  Onionator replaces the Tor onion address of one installed Umbrel app at a
+  time. Select a running app, queue the request, then restart Onionator from
+  Umbrel. Rotation runs during startup; the page shows live progress and then
+  the result.
+
+
+  Only the selected app's Tor sidecar is restarted. The app itself stays
+  running, and Umbrel's app proxy login stays in front of this tool. After a
+  rotation, the old address may remain reachable until Tor publishes the new
+  descriptor; anyone using the old address needs the new one. Depending on the
+  app, you may need to log in again on the new address.
+
+
+  This page shows only the Umbrel dashboard onion, so you can keep reaching
+  Umbrel over Tor after a rotation. App onion addresses are not shown here; open
+  each app in Umbrel to see its current address.
+
+
+  WARNING: Restart Onionator only after queueing. Queued requests are
+  processed during its startup. If Onionator cannot start, queued requests
+  wait for a later successful start. Rotating an app's onion can break links,
+  bookmarks, paired clients and integrations that use the old address. This
+  tool does not rotate Umbrel's own dashboard or authentication onions.
+releaseNotes: >-
+  0.1.9:
+  - Image rebuilt from the same source. No functional change.
+icon: https://raw.githubusercontent.com/MadUTXO/MadUTXO-Umbrel-App-Store/master/madutxo-onionator/icon.svg?v=0.1.9
+developer: MadUTXO
+website: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+dependencies: []
+repo: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+support: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/issues
+port: 3068
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: MadUTXO
+submission: https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store/tree/master/madutxo-onionator
+permissions: []

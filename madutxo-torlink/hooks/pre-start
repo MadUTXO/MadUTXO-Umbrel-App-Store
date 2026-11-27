@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+STATE="${APP_DATA_DIR:?APP_DATA_DIR is not set}/data"
+
+mkdir -p "$STATE/config" "$STATE/data" "$STATE/home"
+if [ "$(stat -c %u "$STATE")" != "1000" ]; then
+    chown -R 1000:1000 "$STATE"
+fi

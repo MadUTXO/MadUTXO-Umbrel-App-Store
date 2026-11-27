@@ -1,0 +1,40 @@
+diff --git a/vitest.config.ts b/vitest.config.ts
+index f4eb86d..feb9ced 100644
+--- a/vitest.config.ts
++++ b/vitest.config.ts
+@@ -1,15 +1,10 @@
+-import os from "node:os";
+-import path from "node:path";
+ import { defineConfig } from "vitest/config";
+ 
+-// Keep tests off the real user data dir: redirect all persisted state (queue /
+-// history / seeds / config) into a temp folder via the TORLINK_STATE_DIR
+-// override that src/config/paths.ts honors. Applied before test modules import
+-// paths.ts, so every write during a run lands here instead.
++// Keep tests off the real user data dir: vitest.setup.ts points
++// TORLINK_STATE_DIR (honored by src/config/paths.ts) at a per-worker temp
++// folder before any test module imports paths.ts.
+ export default defineConfig({
+   test: {
+-    env: {
+-      TORLINK_STATE_DIR: path.join(os.tmpdir(), "torlink-test-state"),
+-    },
++    setupFiles: ["./vitest.setup.ts"],
+   },
+ });
+diff --git a/vitest.setup.ts b/vitest.setup.ts
+new file mode 100644
+index 0000000..0862327
+--- /dev/null
++++ b/vitest.setup.ts
+@@ -0,0 +1,10 @@
++import os from "node:os";
++import path from "node:path";
++
++// Give every vitest worker its own state dir. Suites that legitimately touch
++// persisted state (queue / history / seeds / boot marker) then cannot race on
++// one shared temp folder when files run in parallel.
++const workerId =
++  process.env.VITEST_POOL_ID ?? process.env.VITEST_WORKER_ID ?? String(process.pid);
++
++process.env.TORLINK_STATE_DIR = path.join(os.tmpdir(), `torlink-test-state-${workerId}`);

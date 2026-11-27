@@ -1,0 +1,6 @@
+.git
+.dockerignore
+.trivyignore
+data
+node_modules
+*.log

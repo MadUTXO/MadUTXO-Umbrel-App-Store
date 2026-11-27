@@ -1,0 +1,5 @@
+# routstrd-specific Trivy ignores.
+#
+# Intentionally empty: the repo-root .trivyignore entry is justified for
+# torlink's runtime only, so routstrd scans must not inherit it. Add an ID here
+# only with a written justification and a review date.

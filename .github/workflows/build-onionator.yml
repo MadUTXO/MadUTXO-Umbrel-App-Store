@@ -1,0 +1,110 @@
+name: Build onionator
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'madutxo-onionator/Dockerfile'
+      - 'madutxo-onionator/.dockerignore'
+      - 'madutxo-onionator/go.mod'
+      - 'madutxo-onionator/go.sum'
+      - 'madutxo-onionator/main.go'
+      - 'madutxo-onionator/main_test.go'
+      - 'madutxo-onionator/web/**'
+
+concurrency:
+  group: build-onionator
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Run govulncheck
+        run: |
+          docker run --rm \
+            -e GOTOOLCHAIN=local \
+            -v "$PWD/madutxo-onionator:/src:ro" \
+            -w /src \
+            golang:1.27.4-alpine@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 \
+            sh -eu -c 'go install golang.org/x/vuln/cmd/govulncheck@v1.10.0 && govulncheck ./...'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build and push 0.1.9
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: ./madutxo-onionator
+          file: ./madutxo-onionator/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/madutxo/onionator:0.1.9
+          labels: |
+            org.opencontainers.image.title=onionator
+            org.opencontainers.image.source=https://github.com/MadUTXO/MadUTXO-Umbrel-App-Store
+            org.opencontainers.image.version=0.1.9
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+
+      - name: Report image digest
+        run: echo "onionator:0.1.9 digest = ${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Ensure package is public
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GHCR_PAT }}
+        run: |
+          echo "ghcr token user: $(gh api /user --jq .login)"
+          gh api --method PATCH /user/packages/container/onionator -f visibility=public \
+            || GH_TOKEN="${{ github.token }}" gh api --method PATCH /user/packages/container/onionator -f visibility=public
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@fffec3d851af758d56fee099cf3fbf8aa8779843
+        with:
+          image: ghcr.io/madutxo/onionator:0.1.9
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: onionator-sbom
+          path: sbom*
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        with:
+          image-ref: 'ghcr.io/madutxo/onionator:0.1.9'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          trivyignores: 'madutxo-onionator/.trivyignore'
+          exit-code: '0'
+
+      - name: Upload Trivy results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: onionator-trivy
+          path: trivy-results.sarif

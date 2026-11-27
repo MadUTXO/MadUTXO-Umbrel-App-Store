@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+STATE="${APP_DATA_DIR:?APP_DATA_DIR is not set}/data"
+
+mkdir -p "$STATE"
+# The model tree is ~1.2 GiB, so only walk it when ownership is actually wrong.
+if [ "$(stat -c %u "$STATE")" != "1000" ]; then
+    chown -R 1000:1000 "$STATE"
+fi
